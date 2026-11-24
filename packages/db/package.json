@@ -1,0 +1,33 @@
+{
+  "name": "@shifo/db",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "prisma": "7.10.1"
+  },
+  "devDependencies": {
+    "@shifo/config": "workspace:*",
+    "@types/node": "22.20.5",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.1"
+  }
+}

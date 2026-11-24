@@ -43,6 +43,16 @@ function toProblem(err: unknown, requestId: string): Problem {
       requestId,
     };
   }
+  if (typeof err === 'object' && err !== null && (err as { code?: unknown }).code === 'P2002') {
+    return {
+      type: 'about:blank',
+      title: 'Conflict',
+      status: 409,
+      code: 'CONFLICT',
+      detail: 'A record with the same unique value already exists',
+      requestId,
+    };
+  }
   return {
     type: 'about:blank',
     title: TITLES.INTERNAL_ERROR ?? 'Internal server error',

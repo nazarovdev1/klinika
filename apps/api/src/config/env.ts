@@ -7,6 +7,15 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  ACCESS_TTL_SECONDS: z.coerce.number().int().default(900),
+  REFRESH_TTL_DAYS: z.coerce.number().int().default(30),
+  LOGIN_RATE_LIMIT: z.coerce.number().int().default(5),
+  LOGIN_MAX_FAILURES: z.coerce.number().int().default(5),
+  LOGIN_LOCK_MINUTES: z.coerce.number().int().default(15),
+  COOKIE_SECURE: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => v === 'true'),
   JWT_ACCESS_SECRET: z.string().min(32, 'must be at least 32 characters'),
 });
 

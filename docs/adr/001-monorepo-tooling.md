@@ -17,3 +17,15 @@ Status: accepted (2026-11-24)
   components are added with the CLI from Phase 1 on.
 - **Docker** was not available on the dev machine in Phase 0; Dockerfiles and compose files are unverified
   locally. CI runs `docker compose config`; a first real `compose up` is still to be done.
+
+## Phase 1 decisions
+
+- **Prisma 7** with the `prisma-client` generator (output `packages/db/src/generated`, git-ignored, generated on build)
+  and `@prisma/adapter-pg`. The datasource URL lives in `prisma.config.ts`.
+- **Tests use real Postgres without Docker**: each suite creates an isolated schema (`t_<random>`) in the database
+  from `DATABASE_URL`, applies the migrations and drops it afterwards (`apps/api/src/test/harness.ts`).
+  Testcontainers (brief section 9) is replaced until Docker is available; CI provides a Postgres service.
+  Suites skip when `DATABASE_URL` is unset.
+- **Auth module may use the unscoped client** (`db.system()`): login/refresh occur before the tenant is known.
+  An ESLint rule forbids `.system()` in every other module.
+- **OpenAPI** is served as JSON at `GET /api/docs` and currently describes health, auth and staff.

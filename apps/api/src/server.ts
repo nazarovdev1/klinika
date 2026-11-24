@@ -1,4 +1,5 @@
 import { createServer, type Server } from 'node:http';
+import { createDb } from '@shifo/db';
 import { createApp } from './app.js';
 import { parseEnv } from './config/env.js';
 import { createLogger } from './core/logger.js';
@@ -7,7 +8,8 @@ import { createLogger } from './core/logger.js';
 export function start(): Server {
   const env = parseEnv();
   const logger = createLogger(env.LOG_LEVEL);
-  const server = createServer(createApp(env, logger));
+  const db = createDb(env.DATABASE_URL);
+  const server = createServer(createApp(env, logger, db));
 
   server.listen(env.API_PORT, () => {
     logger.info({ port: env.API_PORT }, 'api listening');
@@ -15,7 +17,9 @@ export function start(): Server {
 
   const shutdown = (signal: string): void => {
     logger.info({ signal }, 'shutting down');
-    server.close(() => process.exit(0));
+    server.close(() => {
+      void db.disconnect().finally(() => process.exit(0));
+    });
     setTimeout(() => process.exit(1), 10_000).unref();
   };
   process.on('SIGTERM', () => {
