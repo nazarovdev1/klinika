@@ -1,6 +1,7 @@
 export * from './auth.js';
 export * from './catalog.js';
 export * from './clinics.js';
+export * from './encounters.js';
 export * from './errors.js';
 export * from './health.js';
 export * from './patients.js';

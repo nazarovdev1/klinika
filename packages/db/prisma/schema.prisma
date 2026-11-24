@@ -454,3 +454,162 @@ model QueueTicket {
   @@index([clinicId])
   @@index([branchId, date, status])
 }
+
+enum EncounterStatus {
+  OPEN
+  SIGNED
+  CANCELLED
+}
+
+enum DiagnosisType {
+  PRIMARY
+  SECONDARY
+  COMPLICATION
+}
+
+model Encounter {
+  id              String          @id @default(uuid()) @db.Uuid
+  clinicId        String          @db.Uuid
+  branchId        String          @db.Uuid
+  patientId       String          @db.Uuid
+  doctorId        String          @db.Uuid
+  appointmentId   String?         @db.Uuid
+  status          EncounterStatus @default(OPEN)
+  startedAt       DateTime        @default(now())
+  signedAt        DateTime?
+  complaints      String?
+  anamnesis       String?
+  objectiveStatus String?
+  conclusion      String?
+  recommendations String?
+  version         Int             @default(1)
+  dhpEncounterId  String?
+  dhpSyncStatus   String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  vitals        Vitals[]
+  diagnoses     Diagnosis[]
+  prescriptions Prescription[]
+  addenda       EncounterAddendum[]
+
+  @@index([clinicId, patientId, startedAt])
+  @@index([clinicId, doctorId, startedAt])
+}
+
+model Vitals {
+  id               String   @id @default(uuid()) @db.Uuid
+  clinicId         String   @db.Uuid
+  encounterId      String   @db.Uuid
+  temperature      Float?
+  systolic         Int?
+  diastolic        Int?
+  pulse            Int?
+  respRate         Int?
+  spo2             Int?
+  weightKg         Float?
+  heightCm         Float?
+  recordedAt       DateTime @default(now())
+  recordedByUserId String?  @db.Uuid
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  encounter Encounter @relation(fields: [encounterId], references: [id])
+
+  @@index([clinicId])
+  @@index([encounterId])
+}
+
+model Diagnosis {
+  id          String        @id @default(uuid()) @db.Uuid
+  clinicId    String        @db.Uuid
+  encounterId String        @db.Uuid
+  icd10Code   String
+  title       String
+  type        DiagnosisType @default(PRIMARY)
+  note        String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  encounter Encounter @relation(fields: [encounterId], references: [id])
+
+  @@index([clinicId])
+  @@index([encounterId])
+}
+
+/// Global reference table (not tenant scoped).
+model Icd10Code {
+  id         String   @id @default(uuid()) @db.Uuid
+  code       String   @unique
+  titleUz    String
+  titleRu    String
+  parentCode String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([titleRu(ops: raw("public.gin_trgm_ops"))], type: Gin, map: "icd10_title_ru_trgm")
+  @@index([titleUz(ops: raw("public.gin_trgm_ops"))], type: Gin, map: "icd10_title_uz_trgm")
+}
+
+model Prescription {
+  id           String   @id @default(uuid()) @db.Uuid
+  clinicId     String   @db.Uuid
+  encounterId  String   @db.Uuid
+  drugName     String
+  form         String?
+  dosage       String?
+  frequency    String?
+  durationDays Int?
+  instructions String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  encounter Encounter @relation(fields: [encounterId], references: [id])
+
+  @@index([clinicId])
+  @@index([encounterId])
+}
+
+model EncounterAddendum {
+  id           String   @id @default(uuid()) @db.Uuid
+  clinicId     String   @db.Uuid
+  encounterId  String   @db.Uuid
+  authorUserId String   @db.Uuid
+  text         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  encounter Encounter @relation(fields: [encounterId], references: [id])
+
+  @@index([clinicId])
+  @@index([encounterId])
+}
+
+model Attachment {
+  id         String   @id @default(uuid()) @db.Uuid
+  clinicId   String   @db.Uuid
+  entityType String
+  entityId   String   @db.Uuid
+  fileName   String
+  mimeType   String
+  size       Int
+  storageKey String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([clinicId, entityType, entityId])
+}
+
+model TextTemplate {
+  id              String   @id @default(uuid()) @db.Uuid
+  clinicId        String   @db.Uuid
+  specialty       String
+  title           String
+  field           String
+  body            String
+  createdByUserId String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clinicId, specialty])
+}

@@ -26,6 +26,7 @@ export const PERMISSIONS = [
   'scheduling:read',
   'scheduling:write',
   'queue:manage',
+  'vitals:write',
 ] as const;
 export const permissionSchema = z.enum(PERMISSIONS);
 export type Permission = z.infer<typeof permissionSchema>;
@@ -54,8 +55,16 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'catalog:read',
     'scheduling:read',
     'queue:manage',
+    'vitals:write',
   ],
-  NURSE: ['patients:read', 'encounters:read', 'lab:write', 'catalog:read', 'scheduling:read'],
+  NURSE: [
+    'patients:read',
+    'encounters:read',
+    'lab:write',
+    'catalog:read',
+    'scheduling:read',
+    'vitals:write',
+  ],
   CASHIER: ['patients:read', 'billing:read', 'billing:write', 'billing:refund', 'catalog:read'],
   LAB: ['patients:read', 'lab:write', 'lab:validate', 'catalog:read'],
 };

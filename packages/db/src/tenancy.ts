@@ -21,6 +21,13 @@ export const TENANT_MODELS = [
   'ScheduleException',
   'Appointment',
   'QueueTicket',
+  'Encounter',
+  'Vitals',
+  'Diagnosis',
+  'Prescription',
+  'EncounterAddendum',
+  'Attachment',
+  'TextTemplate',
 ] as const;
 
 const TENANT_SET = new Set<string>(TENANT_MODELS);

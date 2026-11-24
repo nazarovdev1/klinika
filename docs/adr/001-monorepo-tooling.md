@@ -56,3 +56,10 @@ Status: accepted (2026-11-24)
 - Socket.IO Redis adapter is deferred to Phase 10 (needs Redis; marked TODO in `core/realtime.ts`).
 - Appointment status changes do not yet cancel/reschedule reminders: marked `TODO(phase-8)`.
 - The calendar UI (drag to reschedule) is not built yet; the API supports reschedule with conflict check.
+
+## Phase 4 (Encounters)
+- ICD-10 ships as a **starter set** (~100 outpatient codes, uz/ru) in ; the official edition/ValueSet is TODO(external-spec).
+- New permission  (DOCTOR, NURSE) so nurses can record vitals without clinical write access.
+- Doctors read their own encounters plus any SIGNED one (read-only history); only the attending doctor edits. Signed encounters are immutable (409); corrections are addenda.
+- Audit payloads never contain clinical text. PDFs are rendered by Playwright Chromium with network blocked; QR links to a public, signature-checked verify endpoint that returns no patient data.
+- Deferred: Attachment upload endpoints (model exists), doctor Today web screen.

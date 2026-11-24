@@ -9,17 +9,22 @@ import type { Logger } from 'pino';
 import type { Env } from './config/env.js';
 import { createErrorHandler, notFoundHandler } from './core/errors.js';
 import { buildOpenApiDocument } from './core/openapi.js';
-import { noopRealtime, type Realtime } from './core/realtime.js';
 import { createPii } from './core/pii.js';
+import { noopRealtime, type Realtime } from './core/realtime.js';
 import { requestId } from './core/request-id.js';
 import { authRouter } from './modules/auth/auth.routes.js';
-import { clinicsRouter } from './modules/clinics/clinics.routes.js';
 import { catalogRouter } from './modules/catalog/catalog.routes.js';
-import { buildQueueService, queueRouter } from './modules/queue/queue.routes.js';
-import { schedulingService } from './modules/scheduling/scheduling.service.js';
-import { schedulingRouter } from './modules/scheduling/scheduling.routes.js';
-import { patientsRouter } from './modules/patients/patients.routes.js';
+import { clinicsRouter } from './modules/clinics/clinics.routes.js';
+import { documentsRouter } from './modules/documents/documents.routes.js';
+import { documentsService } from './modules/documents/documents.service.js';
+import { createPlaywrightPdfRenderer, type PdfRenderer } from './modules/documents/pdf.js';
+import { encountersRouter } from './modules/encounters/encounters.routes.js';
+import { encountersService } from './modules/encounters/encounters.service.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { patientsRouter } from './modules/patients/patients.routes.js';
+import { buildQueueService, queueRouter } from './modules/queue/queue.routes.js';
+import { schedulingRouter } from './modules/scheduling/scheduling.routes.js';
+import { schedulingService } from './modules/scheduling/scheduling.service.js';
 import { staffRouter } from './modules/staff/staff.routes.js';
 
 export function createApp(
@@ -27,6 +32,7 @@ export function createApp(
   logger: Logger,
   db: Db,
   realtime: Realtime = noopRealtime,
+  renderer: PdfRenderer = createPlaywrightPdfRenderer(),
 ): Express {
   const app = express();
   app.disable('x-powered-by');
@@ -47,15 +53,18 @@ export function createApp(
     res.json(openApi);
   });
 
+  const pii = createPii(env);
+  const queue = buildQueueService(db, realtime);
   app.use('/api/v1', healthRouter());
   app.use('/api/v1/auth', authRouter(env, db));
   app.use('/api/v1/staff', staffRouter(env, db));
-  app.use('/api/v1/patients', patientsRouter(env, db, createPii(env)));
+  app.use('/api/v1/patients', patientsRouter(env, db, pii));
   app.use('/api/v1', clinicsRouter(env, db));
   app.use('/api/v1', catalogRouter(env, db));
-  const queue = buildQueueService(db, realtime);
   app.use('/api/v1', schedulingRouter(env, schedulingService(db, realtime, queue)));
   app.use('/api/v1', queueRouter(env, db, queue));
+  app.use('/api/v1', encountersRouter(env, encountersService(db)));
+  app.use('/api/v1', documentsRouter(env, db, pii, documentsService(db, env, pii, renderer)));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger));
