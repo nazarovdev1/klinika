@@ -27,35 +27,39 @@ async function createClinic(argv: string[]): Promise<void> {
   }
   const generated = !values.password;
   const password = values.password ?? randomBytes(9).toString('base64url') + '1';
+  const passwordHash = await hashPassword(password);
   const db = createDb(parseEnv().DATABASE_URL);
   try {
-    const result = await db.system().$transaction(async (tx) => {
-      const clinic = await tx.clinic.create({ data: { name } });
-      const branch = await tx.branch.create({
-        data: { clinicId: clinic.id, name: values['branch-name'] },
-      });
-      const owner = await tx.user.create({
-        data: {
-          clinicId: clinic.id,
-          fullName: values['owner-name'] ?? 'Owner',
-          phone,
-          login: login.toLowerCase(),
-          passwordHash: await hashPassword(password),
-          role: 'OWNER',
-          mustChangePassword: true,
-          branches: { create: { branchId: branch.id, clinicId: clinic.id } },
-        },
-      });
-      await tx.auditLog.create({
-        data: {
-          clinicId: clinic.id,
-          action: 'clinic.created',
-          entityType: 'Clinic',
-          entityId: clinic.id,
-        },
-      });
-      return { clinic, branch, owner };
-    });
+    const result = await db.system().$transaction(
+      async (tx) => {
+        const clinic = await tx.clinic.create({ data: { name } });
+        const branch = await tx.branch.create({
+          data: { clinicId: clinic.id, name: values['branch-name'] },
+        });
+        const owner = await tx.user.create({
+          data: {
+            clinicId: clinic.id,
+            fullName: values['owner-name'] ?? 'Owner',
+            phone,
+            login: login.toLowerCase(),
+            passwordHash,
+            role: 'OWNER',
+            mustChangePassword: true,
+            branches: { create: { branchId: branch.id, clinicId: clinic.id } },
+          },
+        });
+        await tx.auditLog.create({
+          data: {
+            clinicId: clinic.id,
+            action: 'clinic.created',
+            entityType: 'Clinic',
+            entityId: clinic.id,
+          },
+        });
+        return { clinic, branch, owner };
+      },
+      { timeout: 30_000, maxWait: 30_000 },
+    );
     console.log(`Clinic created: ${result.clinic.id}`);
     console.log(`Branch: ${result.branch.id}`);
     console.log(`Owner login: ${result.owner.login}`);
