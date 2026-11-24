@@ -64,3 +64,10 @@ Status: accepted (2026-11-24)
 - Doctors read their own encounters plus any SIGNED one (read-only history); only the attending doctor edits. Signed encounters are immutable (409); corrections are addenda.
 - Audit payloads never contain clinical text. PDFs are rendered by Playwright Chromium with network blocked; the QR links to a public, signature-checked verify endpoint that returns no patient data.
 - Deferred: Attachment upload endpoints (model exists), doctor "Today" web screen.
+
+## Phase 5 (DHP integration)
+
+- **Worker design:** the outbox dispatcher (`apps/api/src/core/outbox.ts`) polls the `OutboxEvent` table with lease-based claiming (safe for several workers) and exponential backoff (30 s … 1 h, DEAD after `DHP_MAX_ATTEMPTS`). The process entry is `apps/api/src/worker.ts` (`pnpm --filter @shifo/api worker`). BullMQ/Redis is deferred to Phase 8 (delayed reminders/SMS); `apps/worker` keeps the BullMQ skeleton until then. Deviation from the brief ("outbox → BullMQ"): it keeps the guarantee testable without Redis.
+- **Consent gate:** `encounter.signed` is pushed to DHP only with an active `DHP_SHARING` consent; otherwise the `DhpSyncRecord` is SKIPPED and nothing leaves the system.
+- **FHIR:** all mapping lives in `packages/fhir` (pure functions). Profile URLs, identifier systems and the FHIR version are `TODO(external-spec)`; `MOCK_FHIR_CONFIG` carries neutral placeholders. `HttpDhpClient` sends no auth until the IG is read; `DHP_MODE=mock` is the default.
+- Admin UI at `/integration` (status, counts, failed/dead records with retry, organization id).

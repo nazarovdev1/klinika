@@ -613,3 +613,29 @@ model TextTemplate {
 
   @@index([clinicId, specialty])
 }
+
+enum DhpSyncStatus {
+  PENDING
+  SENT
+  FAILED
+  DEAD
+  SKIPPED
+}
+
+model DhpSyncRecord {
+  id            String        @id @default(uuid()) @db.Uuid
+  clinicId      String        @db.Uuid
+  outboxEventId String        @unique @db.Uuid
+  entityType    String
+  entityId      String        @db.Uuid
+  status        DhpSyncStatus @default(PENDING)
+  attempts      Int           @default(0)
+  lastError     String?
+  remoteId      String?
+  syncedAt      DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([clinicId, status])
+  @@index([clinicId, entityType, entityId])
+}

@@ -21,6 +21,10 @@ const envSchema = z.object({
   PII_ACTIVE_KEY_ID: z.string().min(1),
   /** base64, >= 32 bytes. Deterministic HMAC for exact-match search. */
   PII_HMAC_KEY: z.string().min(43),
+  /** 'mock' = in-process fake DHP (default for dev/test); 'http' = real endpoint (TODO(external-spec)). */
+  DHP_MODE: z.enum(['mock', 'http']).default('mock'),
+  DHP_BASE_URL: z.string().optional(),
+  DHP_MAX_ATTEMPTS: z.coerce.number().int().min(1).default(6),
   JWT_ACCESS_SECRET: z.string().min(32, 'must be at least 32 characters'),
 });
 

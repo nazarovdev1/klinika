@@ -41,5 +41,24 @@
     "phone": "Telefon",
     "pinfl": "PINFL",
     "empty": "Bemor topilmadi"
+  },
+  "integration": {
+    "title": "DHP integratsiyasi",
+    "mode": "Rejim",
+    "reachable": "Aloqa",
+    "yes": "Bor",
+    "no": "Yo‘q",
+    "orgId": "DHP tashkilot ID",
+    "save": "Saqlash",
+    "saved": "Saqlandi",
+    "records": "Sinxronizatsiya yozuvlari",
+    "status": "Holat",
+    "entity": "Obyekt",
+    "attempts": "Urinishlar",
+    "error": "Xato",
+    "retry": "Qayta urinish",
+    "empty": "Yozuvlar yo‘q",
+    "all": "Barchasi",
+    "loadError": "Yuklab bo‘lmadi"
   }
 }

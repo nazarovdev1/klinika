@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "cli": "tsx src/cli.ts"
+    "cli": "tsx src/cli.ts",
+    "worker": "tsx src/worker.ts",
+    "start:worker": "node dist/worker.js"
   },
   "devDependencies": {
     "@shifo/config": "workspace:*",
@@ -33,6 +35,7 @@
     "@asteasolutions/zod-to-openapi": "9.1.0",
     "@shifo/contracts": "workspace:*",
     "@shifo/db": "workspace:*",
+    "@shifo/fhir": "workspace:*",
     "argon2": "0.45.2",
     "cookie-parser": "1.4.7",
     "cors": "2.8.6",

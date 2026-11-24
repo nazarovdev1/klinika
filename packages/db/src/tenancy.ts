@@ -28,6 +28,7 @@ export const TENANT_MODELS = [
   'EncounterAddendum',
   'Attachment',
   'TextTemplate',
+  'DhpSyncRecord',
 ] as const;
 
 const TENANT_SET = new Set<string>(TENANT_MODELS);

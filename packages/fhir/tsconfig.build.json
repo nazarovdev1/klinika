@@ -1,0 +1,6 @@
+{
+  "extends": "@shifo/config/tsconfig.node.json",
+  "compilerOptions": { "outDir": "dist", "rootDir": "src", "declaration": true, "types": [] },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}

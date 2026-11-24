@@ -20,6 +20,9 @@ import { documentsService } from './modules/documents/documents.service.js';
 import { createPlaywrightPdfRenderer, type PdfRenderer } from './modules/documents/pdf.js';
 import { encountersRouter } from './modules/encounters/encounters.routes.js';
 import { encountersService } from './modules/encounters/encounters.service.js';
+import { buildDhpClient } from './modules/integrations/dhp.factory.js';
+import type { DhpClient } from './modules/integrations/dhp.client.js';
+import { integrationsRouter } from './modules/integrations/integrations.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { patientsRouter } from './modules/patients/patients.routes.js';
 import { buildQueueService, queueRouter } from './modules/queue/queue.routes.js';
@@ -33,6 +36,7 @@ export function createApp(
   db: Db,
   realtime: Realtime = noopRealtime,
   renderer: PdfRenderer = createPlaywrightPdfRenderer(),
+  dhp: DhpClient = buildDhpClient(env),
 ): Express {
   const app = express();
   app.disable('x-powered-by');
@@ -65,6 +69,8 @@ export function createApp(
   app.use('/api/v1', queueRouter(env, db, queue));
   app.use('/api/v1', encountersRouter(env, encountersService(db)));
   app.use('/api/v1', documentsRouter(env, db, pii, documentsService(db, env, pii, renderer)));
+
+  app.use('/api/v1', integrationsRouter(env, db, dhp));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger));
