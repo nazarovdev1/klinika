@@ -8,7 +8,7 @@ import { parseEnv, type Env } from '../config/env.js';
 import { createLogger } from '../core/logger.js';
 import { hashPassword } from '../core/passwords.js';
 
-const root = resolve(import.meta.dirname, '../../../..');
+export const root = resolve(import.meta.dirname, '../../../..');
 const envFile = resolve(root, '.env');
 if (!process.env.DATABASE_URL && existsSync(envFile)) process.loadEnvFile(envFile);
 

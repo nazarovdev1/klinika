@@ -5,6 +5,9 @@ const envSchema = z.object({
   API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   WEB_ORIGIN: z.url(),
   DATABASE_URL: z.string().min(1),
+  /** Owner/migrator role used by system() when DB_RLS=on (the main URL is then the restricted app role). */
+  DATABASE_SYSTEM_URL: z.string().optional(),
+  DB_RLS: z.enum(['on', 'off']).default('off'),
   REDIS_URL: z.string().min(1),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   ACCESS_TTL_SECONDS: z.coerce.number().int().default(900),

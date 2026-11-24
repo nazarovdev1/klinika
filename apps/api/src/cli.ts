@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { parseArgs } from 'node:util';
-import { createDb } from '@shifo/db';
+import { dbFromEnv } from './core/db.js';
 import { parseEnv } from './config/env.js';
 import { hashPassword } from './core/passwords.js';
 
@@ -28,7 +28,7 @@ async function createClinic(argv: string[]): Promise<void> {
   const generated = !values.password;
   const password = values.password ?? randomBytes(9).toString('base64url') + '1';
   const passwordHash = await hashPassword(password);
-  const db = createDb(parseEnv().DATABASE_URL);
+  const db = dbFromEnv(parseEnv());
   try {
     const result = await db.system().$transaction(
       async (tx) => {

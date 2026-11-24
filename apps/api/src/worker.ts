@@ -1,4 +1,4 @@
-import { createDb } from '@shifo/db';
+import { dbFromEnv } from './core/db.js';
 import { Bot } from 'grammy';
 import { parseEnv } from './config/env.js';
 import { createLogger } from './core/logger.js';
@@ -18,7 +18,7 @@ import { labReadyHandler } from './modules/notifications/notifications.handlers.
  */
 const env = parseEnv();
 const logger = createLogger(env.LOG_LEVEL);
-const db = createDb(env.DATABASE_URL);
+const db = dbFromEnv(env);
 const messaging = buildMessaging(env);
 const handlers = [
   encounterSignedHandler(db, createPii(env), buildDhpClient(env)),

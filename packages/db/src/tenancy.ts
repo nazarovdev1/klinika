@@ -1,3 +1,4 @@
+import { clinicStore } from './rls-store.js';
 import type { PrismaClient } from './generated/client.js';
 
 /** Models that carry clinicId. Clinic itself is scoped by its own id. */
@@ -76,12 +77,15 @@ function stampData(data: unknown, clinicId: string): unknown {
  */
 export function forTenant(prisma: PrismaClient, clinicId: string) {
   if (!clinicId) throw new Error('forTenant requires a clinicId');
-  return prisma.$extends({
+  const extended = prisma.$extends({
     name: 'tenant-scope',
     query: {
       $allModels: {
         $allOperations({ model, operation, args, query: rawQuery }) {
-          const query = rawQuery as (a: unknown) => Promise<unknown>;
+          const inner = rawQuery as (a: unknown) => Promise<unknown>;
+          // publish the clinic for row-level security (no-op unless the pool is an RLS pool)
+          const query = (a: unknown): Promise<unknown> =>
+            clinicStore.run(clinicId, async () => await inner(a)); // Prisma promises are lazy: run inside the store;
           const a = args as unknown as Record<string, unknown>;
           if (model === 'Clinic') {
             if (WHERE_OPS.has(operation)) {
@@ -106,6 +110,18 @@ export function forTenant(prisma: PrismaClient, clinicId: string) {
           throw new Error(`Operation ${operation} on ${model} is not supported on a tenant client`);
         },
       },
+    },
+  });
+  // Interactive transactions check a connection out before any query runs: publish the clinic there too.
+  return new Proxy(extended, {
+    get(target, prop, receiver) {
+      if (prop === '$transaction') {
+        return (...a: unknown[]) =>
+          clinicStore.run(clinicId, () =>
+            (target.$transaction as (...x: unknown[]) => unknown).apply(target, a),
+          );
+      }
+      return Reflect.get(target, prop, receiver) as unknown;
     },
   });
 }
