@@ -49,6 +49,7 @@ model Clinic {
 
   branches Branch[]
   users    User[]
+  patients Patient[]
 }
 
 model Branch {
@@ -208,4 +209,73 @@ model NumberSequence {
 
   @@unique([clinicId, branchId, key, date])
   @@index([clinicId])
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum ConsentType {
+  DATA_PROCESSING
+  DHP_SHARING
+  SMS
+}
+
+model Patient {
+  id            String    @id @default(uuid()) @db.Uuid
+  clinicId      String    @db.Uuid
+  lastName      String
+  firstName     String
+  middleName    String?
+  birthDate     DateTime  @db.Date
+  sex           Sex
+  phone         String
+  phone2        String?
+  address       String?
+  pinflEnc      String?
+  pinflHash     String?
+  passportEnc   String?
+  passportHash  String?
+  notes         String?
+  bloodGroup    String?
+  allergiesText String?
+  dhpPatientId  String?
+  version       Int       @default(1)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  clinic   Clinic           @relation(fields: [clinicId], references: [id])
+  consents PatientConsent[]
+
+  @@unique([clinicId, pinflHash])
+  @@index([clinicId, passportHash])
+  @@index([clinicId, phone])
+  @@index([clinicId, lastName, firstName])
+  @@index([clinicId, birthDate])
+  @@index([clinicId, phone2])
+  @@index([lastName(ops: raw("public.gin_trgm_ops"))], type: Gin, map: "patient_last_name_trgm")
+  @@index([firstName(ops: raw("public.gin_trgm_ops"))], type: Gin, map: "patient_first_name_trgm")
+  @@index([middleName(ops: raw("public.gin_trgm_ops"))], type: Gin, map: "patient_middle_name_trgm")
+  @@index([phone(ops: raw("public.gin_trgm_ops"))], type: Gin, map: "patient_phone_trgm")
+}
+
+model PatientConsent {
+  id               String      @id @default(uuid()) @db.Uuid
+  clinicId         String      @db.Uuid
+  patientId        String      @db.Uuid
+  type             ConsentType
+  granted          Boolean
+  grantedAt        DateTime    @default(now())
+  revokedAt        DateTime?
+  recordedByUserId String?     @db.Uuid
+  documentUrl      String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@index([clinicId])
+  @@index([patientId, type])
 }

@@ -3,7 +3,7 @@ import { PrismaClient } from './generated/client.js';
 import { forTenant, type TenantClient } from './tenancy.js';
 
 export { PrismaClient, Prisma } from './generated/client.js';
-export type { Role, ClinicStatus, OutboxStatus } from './generated/client.js';
+export type { Role, ClinicStatus, OutboxStatus, Sex, ConsentType } from './generated/client.js';
 export { forTenant, TENANT_MODELS, type TenantClient } from './tenancy.js';
 
 export interface Db {

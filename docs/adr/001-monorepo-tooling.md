@@ -29,3 +29,15 @@ Status: accepted (2026-11-24)
 - **Auth module may use the unscoped client** (`db.system()`): login/refresh occur before the tenant is known.
   An ESLint rule forbids `.system()` in every other module.
 - **OpenAPI** is served as JSON at `GET /api/docs` and currently describes health, auth and staff.
+
+## Phase 2 decisions
+
+- **PINFL / passport**: AES-256-GCM (`<keyId>.<iv>.<tag>.<ct>`), keys from `PII_KEYS`, active key `PII_ACTIVE_KEY_ID`
+  (rotation = add a key and switch the active id; old ciphertexts stay readable). Exact-match search and
+  uniqueness use an HMAC-SHA256 column (`PII_HMAC_KEY`). Audit payloads only record `hasPinfl`/`hasPassport`.
+- **Patient search**: key lookups (PINFL/passport hash, phone, birth date) use btree indexes; name and
+  partial-phone search use `pg_trgm` GIN indexes (`public.gin_trgm_ops`, created in the migration).
+- **Duplicates**: same PINFL -> hard `409 DUPLICATE_PATIENT`; same (name, birthDate, phone) -> `409` until the client
+  resends with `confirmDuplicate=true`.
+- **Web API access** goes through a Next.js rewrite (`/api/*` -> `API_INTERNAL_URL`) so the SameSite=Strict
+  refresh cookie is same-origin.

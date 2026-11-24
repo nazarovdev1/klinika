@@ -1,5 +1,7 @@
 {
-  "app": { "name": "Shifo" },
+  "app": {
+    "name": "Shifo"
+  },
   "nav": {
     "dashboard": "Boshqaruv paneli",
     "patients": "Bemorlar",
@@ -16,7 +18,10 @@
     "title": "Tizimga kirish",
     "login": "Login",
     "password": "Parol",
-    "submit": "Kirish"
+    "submit": "Kirish",
+    "invalid": "Login yoki parol noto'g'ri",
+    "locked": "Akkaunt vaqtincha bloklangan",
+    "rateLimited": "Juda ko'p urinish, bir ozdan keyin qayta urinib ko'ring"
   },
   "home": {
     "welcome": "Shifo klinika boshqaruv tizimiga xush kelibsiz"
@@ -24,5 +29,16 @@
   "screen": {
     "title": "Navbat ekrani",
     "empty": "Hozircha chaqirilgan bemor yo'q"
+  },
+  "patients": {
+    "title": "Bemorlar",
+    "search": "Qidiruv",
+    "searchPlaceholder": "Ism, telefon, PINFL, pasport yoki tug'ilgan sana",
+    "loadError": "Yuklab bo'lmadi",
+    "name": "F.I.Sh.",
+    "birthDate": "Tug'ilgan sana",
+    "phone": "Telefon",
+    "pinfl": "PINFL",
+    "empty": "Bemor topilmadi"
   }
 }

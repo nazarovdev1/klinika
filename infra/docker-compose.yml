@@ -6,6 +6,9 @@ x-env: &app-env
   REDIS_URL: redis://redis:6379
   WEB_ORIGIN: ${WEB_ORIGIN}
   JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+  PII_KEYS: ${PII_KEYS}
+  PII_ACTIVE_KEY_ID: ${PII_ACTIVE_KEY_ID:-k1}
+  PII_HMAC_KEY: ${PII_HMAC_KEY}
   LOG_LEVEL: ${LOG_LEVEL:-info}
 
 services:

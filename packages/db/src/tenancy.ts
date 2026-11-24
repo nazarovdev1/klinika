@@ -11,6 +11,8 @@ export const TENANT_MODELS = [
   'OutboxEvent',
   'IdempotencyKey',
   'NumberSequence',
+  'Patient',
+  'PatientConsent',
 ] as const;
 
 const TENANT_SET = new Set<string>(TENANT_MODELS);

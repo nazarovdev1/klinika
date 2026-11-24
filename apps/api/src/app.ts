@@ -9,9 +9,11 @@ import type { Logger } from 'pino';
 import type { Env } from './config/env.js';
 import { createErrorHandler, notFoundHandler } from './core/errors.js';
 import { buildOpenApiDocument } from './core/openapi.js';
+import { createPii } from './core/pii.js';
 import { requestId } from './core/request-id.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { clinicsRouter } from './modules/clinics/clinics.routes.js';
+import { patientsRouter } from './modules/patients/patients.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { staffRouter } from './modules/staff/staff.routes.js';
 
@@ -38,6 +40,7 @@ export function createApp(env: Env, logger: Logger, db: Db): Express {
   app.use('/api/v1', healthRouter());
   app.use('/api/v1/auth', authRouter(env, db));
   app.use('/api/v1/staff', staffRouter(env, db));
+  app.use('/api/v1/patients', patientsRouter(env, db, createPii(env)));
   app.use('/api/v1', clinicsRouter(env, db));
 
   app.use(notFoundHandler);

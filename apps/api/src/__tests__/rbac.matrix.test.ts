@@ -36,6 +36,14 @@ const endpoints: Endpoint[] = [
   },
   { name: 'GET /branches', method: 'get', path: '/api/v1/branches', allowed: ROLES },
   { name: 'POST /branches', method: 'post', path: '/api/v1/branches', body: {}, allowed: MANAGERS },
+  { name: 'GET /patients', method: 'get', path: '/api/v1/patients', allowed: ROLES },
+  {
+    name: 'POST /patients',
+    method: 'post',
+    path: '/api/v1/patients',
+    body: {},
+    allowed: ['OWNER', 'ADMIN', 'REGISTRAR'],
+  },
   { name: 'GET /auth/me', method: 'get', path: '/api/v1/auth/me', allowed: ROLES },
 ];
 

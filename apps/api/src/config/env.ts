@@ -16,6 +16,11 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .optional()
     .transform((v) => v === 'true'),
+  /** Comma separated keyId:base64(32 bytes), e.g. k1:AAAA... Used for AES-256-GCM of PINFL/passport. */
+  PII_KEYS: z.string().min(1),
+  PII_ACTIVE_KEY_ID: z.string().min(1),
+  /** base64, >= 32 bytes. Deterministic HMAC for exact-match search. */
+  PII_HMAC_KEY: z.string().min(43),
   JWT_ACCESS_SECRET: z.string().min(32, 'must be at least 32 characters'),
 });
 
