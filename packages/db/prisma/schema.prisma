@@ -639,3 +639,133 @@ model DhpSyncRecord {
   @@index([clinicId, status])
   @@index([clinicId, entityType, entityId])
 }
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIAL
+  PAID
+  VOID
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  CLICK
+  PAYME
+  UZUM
+}
+
+enum ShiftStatus {
+  OPEN
+  CLOSED
+}
+
+model Invoice {
+  id              String        @id @default(uuid()) @db.Uuid
+  clinicId        String        @db.Uuid
+  branchId        String        @db.Uuid
+  patientId       String        @db.Uuid
+  encounterId     String?       @db.Uuid
+  number          String
+  status          InvoiceStatus @default(DRAFT)
+  subtotal        BigInt        @default(0)
+  discount        BigInt        @default(0)
+  total           BigInt        @default(0)
+  paidAmount      BigInt        @default(0)
+  createdByUserId String        @db.Uuid
+  issuedAt        DateTime?
+  voidedAt        DateTime?
+  version         Int           @default(1)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  lines    InvoiceLine[]
+  payments Payment[]
+
+  @@unique([clinicId, number])
+  @@index([clinicId, patientId])
+  @@index([clinicId, status, createdAt])
+}
+
+model InvoiceLine {
+  id          String   @id @default(uuid()) @db.Uuid
+  clinicId    String   @db.Uuid
+  invoiceId   String   @db.Uuid
+  serviceId   String?  @db.Uuid
+  description String
+  qty         Int
+  unitPrice   BigInt
+  discount    BigInt   @default(0)
+  total       BigInt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([clinicId])
+  @@index([invoiceId])
+}
+
+model CashShift {
+  id           String      @id @default(uuid()) @db.Uuid
+  clinicId     String      @db.Uuid
+  branchId     String      @db.Uuid
+  cashierId    String      @db.Uuid
+  status       ShiftStatus @default(OPEN)
+  openingFloat BigInt      @default(0)
+  expectedCash BigInt?
+  countedCash  BigInt?
+  difference   BigInt?
+  openedAt     DateTime    @default(now())
+  closedAt     DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  payments Payment[]
+  refunds  Refund[]
+
+  @@index([clinicId, cashierId, status])
+  @@index([clinicId, openedAt])
+}
+
+model Payment {
+  id               String        @id @default(uuid()) @db.Uuid
+  clinicId         String        @db.Uuid
+  invoiceId        String        @db.Uuid
+  method           PaymentMethod
+  amount           BigInt
+  refundedAmount   BigInt        @default(0)
+  idempotencyKey   String
+  cashShiftId      String?       @db.Uuid
+  receivedByUserId String        @db.Uuid
+  providerRef      String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  invoice Invoice    @relation(fields: [invoiceId], references: [id])
+  shift   CashShift? @relation(fields: [cashShiftId], references: [id])
+  refunds Refund[]
+
+  @@unique([clinicId, idempotencyKey])
+  @@index([clinicId, invoiceId])
+  @@index([clinicId, cashShiftId])
+}
+
+model Refund {
+  id              String   @id @default(uuid()) @db.Uuid
+  clinicId        String   @db.Uuid
+  paymentId       String   @db.Uuid
+  amount          BigInt
+  reason          String
+  cashShiftId     String?  @db.Uuid
+  createdByUserId String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payment Payment    @relation(fields: [paymentId], references: [id])
+  shift   CashShift? @relation(fields: [cashShiftId], references: [id])
+
+  @@index([clinicId, paymentId])
+  @@index([clinicId, cashShiftId])
+}

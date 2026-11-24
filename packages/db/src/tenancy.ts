@@ -29,6 +29,11 @@ export const TENANT_MODELS = [
   'Attachment',
   'TextTemplate',
   'DhpSyncRecord',
+  'Invoice',
+  'InvoiceLine',
+  'CashShift',
+  'Payment',
+  'Refund',
 ] as const;
 
 const TENANT_SET = new Set<string>(TENANT_MODELS);

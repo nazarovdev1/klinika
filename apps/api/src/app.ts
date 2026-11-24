@@ -13,6 +13,8 @@ import { createPii } from './core/pii.js';
 import { noopRealtime, type Realtime } from './core/realtime.js';
 import { requestId } from './core/request-id.js';
 import { authRouter } from './modules/auth/auth.routes.js';
+import { billingRouter } from './modules/billing/billing.routes.js';
+import { billingService } from './modules/billing/billing.service.js';
 import { catalogRouter } from './modules/catalog/catalog.routes.js';
 import { clinicsRouter } from './modules/clinics/clinics.routes.js';
 import { documentsRouter } from './modules/documents/documents.routes.js';
@@ -71,6 +73,7 @@ export function createApp(
   app.use('/api/v1', documentsRouter(env, db, pii, documentsService(db, env, pii, renderer)));
 
   app.use('/api/v1', integrationsRouter(env, db, dhp));
+  app.use('/api/v1', billingRouter(env, billingService(db), renderer));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger));
