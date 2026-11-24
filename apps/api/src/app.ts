@@ -31,6 +31,8 @@ import { labService } from './modules/lab/lab.service.js';
 import { notificationsRouter } from './modules/notifications/notifications.routes.js';
 import { patientsRouter } from './modules/patients/patients.routes.js';
 import { buildQueueService, queueRouter } from './modules/queue/queue.routes.js';
+import { reportsRouter } from './modules/reports/reports.routes.js';
+import { reportsService } from './modules/reports/reports.service.js';
 import { schedulingRouter } from './modules/scheduling/scheduling.routes.js';
 import { schedulingService } from './modules/scheduling/scheduling.service.js';
 import { staffRouter } from './modules/staff/staff.routes.js';
@@ -77,6 +79,7 @@ export function createApp(
 
   app.use('/api/v1', integrationsRouter(env, db, dhp));
   app.use('/api/v1', notificationsRouter(env, db));
+  app.use('/api/v1', reportsRouter(env, reportsService(db)));
   app.use('/api/v1', labRouter(env, labService(db), renderer));
   app.use('/api/v1', billingRouter(env, billingService(db), renderer));
 

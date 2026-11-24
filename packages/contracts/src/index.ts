@@ -8,5 +8,6 @@ export * from './health.js';
 export * from './patients.js';
 export * from './lab.js';
 export * from './permissions.js';
+export * from './reports.js';
 export * from './scheduling.js';
 export * from './staff.js';
