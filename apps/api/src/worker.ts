@@ -61,7 +61,11 @@ if (env.TELEGRAM_BOT_TOKEN) {
       ok ? 'Telegram ulandi / Telegram подключён ✅' : 'Havola eskirgan / Ссылка недействительна',
     );
   });
-  void bot.start({ onStart: () => logger.info('telegram bot polling') });
+  void bot.start({
+    onStart: () => {
+      logger.info('telegram bot polling');
+    },
+  });
 }
 
 for (const sig of ['SIGTERM', 'SIGINT'] as const) {

@@ -146,7 +146,14 @@ export function reportsService(db: Db) {
             _n: s.received - s.refunded,
           }))
           .sort((a, b) => (b._n > a._n ? 1 : b._n < a._n ? -1 : 0))
-          .map(({ _n: _ignored, ...r }) => r),
+          .map((r) => ({
+            doctorId: r.doctorId,
+            doctor: r.doctor,
+            invoices: r.invoices,
+            received: r.received,
+            refunded: r.refunded,
+            net: r.net,
+          })),
       };
     },
 

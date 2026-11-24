@@ -36,7 +36,7 @@ export function notificationsRouter(env: Env, db: Db): Router {
       });
       const page = rows.slice(0, q.limit);
       res.json({
-        items: page.map(({ params: _params, ...n }) => n), // params may carry names/times; keep them internal
+        items: page.map((n) => ({ ...n, params: undefined })), // params may carry names/times; keep them internal
         nextCursor: rows.length > q.limit ? (page[page.length - 1]?.id ?? null) : null,
       });
     },

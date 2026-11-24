@@ -1,6 +1,6 @@
 import type { Db } from '@shifo/db';
 import type { Logger } from 'pino';
-import { isTemplateKey, renderMessage, type Lang, type TemplateKey } from './messages.js';
+import { isTemplateKey, renderMessage, type Lang } from './messages.js';
 import type { Messaging } from './messaging.js';
 import { backoffMs } from './outbox.js';
 import { dayOf, zonedToUtc } from './time.js';
@@ -173,7 +173,7 @@ export async function dispatchNotifications(
         await set({ status: 'SKIPPED', lastError: 'patient missing' });
         continue;
       }
-      const text = renderMessage(n.template as TemplateKey, n.lang as Lang, params);
+      const text = renderMessage(n.template, n.lang as Lang, params);
       let providerRef: string;
       if (n.channel === 'TELEGRAM') {
         const ch = await prisma.patientChannel.findFirst({
