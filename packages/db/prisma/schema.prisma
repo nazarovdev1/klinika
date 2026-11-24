@@ -854,3 +854,55 @@ model LabOrderItem {
   @@index([clinicId])
   @@index([orderId])
 }
+
+enum NotificationChannel {
+  SMS
+  TELEGRAM
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  DEAD
+  SKIPPED
+}
+
+model PatientChannel {
+  id         String              @id @default(uuid()) @db.Uuid
+  clinicId   String              @db.Uuid
+  patientId  String              @db.Uuid
+  channel    NotificationChannel
+  externalId String?
+  linkCode   String?
+  linkedAt   DateTime?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([patientId, channel])
+  @@unique([linkCode])
+  @@index([clinicId])
+}
+
+model Notification {
+  id           String              @id @default(uuid()) @db.Uuid
+  clinicId     String              @db.Uuid
+  patientId    String              @db.Uuid
+  channel      NotificationChannel
+  template     String
+  lang         String              @default("uz")
+  params       Json                @default("{}")
+  status       NotificationStatus  @default(PENDING)
+  attempts     Int                 @default(0)
+  lastError    String?
+  dedupeKey    String
+  scheduledFor DateTime            @default(now())
+  sentAt       DateTime?
+  providerRef  String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@unique([clinicId, dedupeKey])
+  @@index([status, scheduledFor])
+  @@index([clinicId, patientId])
+}

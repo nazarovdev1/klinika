@@ -25,6 +25,10 @@ const envSchema = z.object({
   DHP_MODE: z.enum(['mock', 'http']).default('mock'),
   DHP_BASE_URL: z.string().optional(),
   DHP_MAX_ATTEMPTS: z.coerce.number().int().min(1).default(6),
+  /** 'mock' records messages in memory; 'eskiz' is a stub until the Eskiz spec is confirmed (TODO(external-spec)). */
+  SMS_MODE: z.enum(['mock', 'eskiz']).default('mock'),
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_BOT_USERNAME: z.string().optional(),
   JWT_ACCESS_SECRET: z.string().min(32, 'must be at least 32 characters'),
 });
 

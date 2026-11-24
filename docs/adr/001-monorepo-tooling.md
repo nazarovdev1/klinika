@@ -71,3 +71,11 @@ Status: accepted (2026-11-24)
 - **Consent gate:** `encounter.signed` is pushed to DHP only with an active `DHP_SHARING` consent; otherwise the `DhpSyncRecord` is SKIPPED and nothing leaves the system.
 - **FHIR:** all mapping lives in `packages/fhir` (pure functions). Profile URLs, identifier systems and the FHIR version are `TODO(external-spec)`; `MOCK_FHIR_CONFIG` carries neutral placeholders. `HttpDhpClient` sends no auth until the IG is read; `DHP_MODE=mock` is the default.
 - Admin UI at `/integration` (status, counts, failed/dead records with retry, organization id).
+
+## Phase 6-8 (Billing, Lab, Notifications)
+
+- **Money:** BigInt in the DB and in all math (`modules/billing/money.ts`); strings on the wire. Percent discounts use basis points with half-up rounding. Catalog prices are resolved server-side, never trusted from the client.
+- **Payments:** idempotent per `Idempotency-Key` (unique per clinic); invoices are protected from overpayment with a compare-and-set on `version` and a bounded retry. Cash requires an open shift in the invoice branch. Void is allowed only for unpaid invoices. Invoice numbers are assigned at issue time from an atomic sequence (gap-free). Click/Payme/Uzum and fiscal receipts are explicit stubs (`NOT_IMPLEMENTED`, TODO(external-spec)).
+- **Lab:** results are entered by LAB/OWNER/ADMIN only; validation is four-eyes (validator must differ from the entering user) unless the clinic sets `settings.labSelfValidation`. Reference ranges are snapshotted on the order item. The result PDF exists only after validation. `lab.validated` goes through the outbox.
+- **Notifications:** messages carry logistics only (no diagnoses, test names or values). SMS needs a granted SMS consent; Telegram needs the patient to link the bot with a one-time code. Reminders (24 h / 2 h) are created by a scanner, are idempotent via `dedupeKey` (includes the start time, so a reschedule creates new ones), are re-validated at send time, and are deferred outside 08:00-21:00 local time. Eskiz is a stub (TODO(external-spec)); `SMS_MODE=mock` is the default.
+- **Test harness:** the remote DB drops idle connections, so the admin connection is closed after setup and cleanup reconnects with retries.

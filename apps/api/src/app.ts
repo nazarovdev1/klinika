@@ -28,6 +28,7 @@ import { integrationsRouter } from './modules/integrations/integrations.routes.j
 import { healthRouter } from './modules/health/health.routes.js';
 import { labRouter } from './modules/lab/lab.routes.js';
 import { labService } from './modules/lab/lab.service.js';
+import { notificationsRouter } from './modules/notifications/notifications.routes.js';
 import { patientsRouter } from './modules/patients/patients.routes.js';
 import { buildQueueService, queueRouter } from './modules/queue/queue.routes.js';
 import { schedulingRouter } from './modules/scheduling/scheduling.routes.js';
@@ -75,6 +76,7 @@ export function createApp(
   app.use('/api/v1', documentsRouter(env, db, pii, documentsService(db, env, pii, renderer)));
 
   app.use('/api/v1', integrationsRouter(env, db, dhp));
+  app.use('/api/v1', notificationsRouter(env, db));
   app.use('/api/v1', labRouter(env, labService(db), renderer));
   app.use('/api/v1', billingRouter(env, billingService(db), renderer));
 

@@ -268,12 +268,10 @@ describe.skipIf(!hasDatabase)('laboratory', () => {
       .post(`/api/v1/lab/orders/${order.id}/validate`)
       .set(auth('OWNER'))
       .expect(403);
-    await db
-      .system()
-      .clinic.update({
-        where: { id: a.clinicId },
-        data: { settings: { labSelfValidation: true } },
-      });
+    await db.system().clinic.update({
+      where: { id: a.clinicId },
+      data: { settings: { labSelfValidation: true } },
+    });
     await request(app)
       .post(`/api/v1/lab/orders/${order.id}/validate`)
       .set(auth('OWNER'))

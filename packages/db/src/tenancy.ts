@@ -37,6 +37,8 @@ export const TENANT_MODELS = [
   'LabTest',
   'LabOrder',
   'LabOrderItem',
+  'PatientChannel',
+  'Notification',
 ] as const;
 
 const TENANT_SET = new Set<string>(TENANT_MODELS);
