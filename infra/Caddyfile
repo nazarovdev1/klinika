@@ -1,0 +1,15 @@
+# Set SITE_ADDRESS to the public domain in production for automatic TLS (e.g. clinic.example.uz).
+# Locally it defaults to :80 (plain HTTP).
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+	handle /socket.io/* {
+		reverse_proxy api:4000
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}

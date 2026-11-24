@@ -1,0 +1,5 @@
+{
+  "extends": "@shifo/config/tsconfig.node.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["src", "eslint.config.mjs", "vitest.config.ts"]
+}

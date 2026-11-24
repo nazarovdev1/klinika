@@ -1,0 +1,12 @@
+# Dev overlay: expose backing services to the host. Run apps with `pnpm dev` on the host.
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up postgres redis mailpit mock-dhp
+services:
+  postgres:
+    ports: ['5432:5432']
+  redis:
+    ports: ['6379:6379']
+  mailpit:
+    profiles: []
+    ports: ['8025:8025', '1025:1025']
+  mock-dhp:
+    ports: ['8090:8090']

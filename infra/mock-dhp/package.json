@@ -1,0 +1,14 @@
+{
+  "name": "@shifo/mock-dhp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "build": "node --check server.mjs",
+    "lint": "node --check server.mjs",
+    "typecheck": "node --check server.mjs",
+    "test": "node --test"
+  }
+}

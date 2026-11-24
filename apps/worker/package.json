@@ -1,0 +1,28 @@
+{
+  "name": "@shifo/worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@shifo/config": "workspace:*",
+    "@types/node": "^22.20.5",
+    "eslint": "10.15.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.1.1"
+  },
+  "dependencies": {
+    "bullmq": "6.7.8",
+    "ioredis": "6.1.0",
+    "pino": "10.4.0",
+    "zod": "4.6.7"
+  }
+}

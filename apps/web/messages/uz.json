@@ -1,0 +1,28 @@
+{
+  "app": { "name": "Shifo" },
+  "nav": {
+    "dashboard": "Boshqaruv paneli",
+    "patients": "Bemorlar",
+    "calendar": "Kalendar",
+    "queue": "Navbat",
+    "visits": "Qabullar",
+    "billing": "To'lovlar",
+    "lab": "Laboratoriya",
+    "reports": "Hisobotlar",
+    "settings": "Sozlamalar",
+    "integration": "Integratsiya"
+  },
+  "login": {
+    "title": "Tizimga kirish",
+    "login": "Login",
+    "password": "Parol",
+    "submit": "Kirish"
+  },
+  "home": {
+    "welcome": "Shifo klinika boshqaruv tizimiga xush kelibsiz"
+  },
+  "screen": {
+    "title": "Navbat ekrani",
+    "empty": "Hozircha chaqirilgan bemor yo'q"
+  }
+}

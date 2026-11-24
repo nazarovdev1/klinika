@@ -1,0 +1,70 @@
+name: shifo
+
+x-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://shifo:${POSTGRES_PASSWORD}@postgres:5432/shifo
+  REDIS_URL: redis://redis:6379
+  WEB_ORIGIN: ${WEB_ORIGIN}
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: shifo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: shifo
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U shifo']
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+
+  api:
+    build: { context: .., dockerfile: infra/Dockerfile.node, args: { APP: api } }
+    environment: { <<: *app-env, API_PORT: 4000 }
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    build: { context: .., dockerfile: infra/Dockerfile.node, args: { APP: worker } }
+    environment: { <<: *app-env }
+    depends_on:
+      redis: { condition: service_healthy }
+
+  web:
+    build: { context: .., dockerfile: infra/Dockerfile.web }
+    depends_on: [api]
+
+  caddy:
+    image: caddy:2-alpine
+    ports: ['80:80', '443:443']
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    depends_on: [api, web]
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    profiles: [dev]
+
+  mock-dhp:
+    build: { context: .., dockerfile: infra/Dockerfile.mock-dhp }
+    environment: { PORT: 8090 }
+
+volumes:
+  pgdata:
+  redisdata:
+  caddydata:
