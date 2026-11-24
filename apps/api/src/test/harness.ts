@@ -48,13 +48,26 @@ export async function createTestDb(): Promise<{ db: Db; cleanup: () => Promise<v
     const file = resolve(dir, name, 'migration.sql');
     if (existsSync(file)) await admin.query(readFileSync(file, 'utf8'));
   }
+  admin.on('error', () => undefined);
+  await admin.end().catch(() => undefined); // the remote server drops long-idle connections; reconnect to clean up
   const db = createDb(url, schema);
   return {
     db,
     cleanup: async () => {
       await db.disconnect();
-      await admin.query(`DROP SCHEMA "${schema}" CASCADE`);
-      await admin.end();
+      for (let attempt = 1; attempt <= 4; attempt++) {
+        const c = new pg.Client({ connectionString: url });
+        c.on('error', () => undefined);
+        try {
+          await c.connect();
+          await c.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+          return;
+        } catch (err) {
+          if (attempt === 4) throw err;
+        } finally {
+          await c.end().catch(() => undefined);
+        }
+      }
     },
   };
 }

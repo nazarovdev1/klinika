@@ -769,3 +769,88 @@ model Refund {
   @@index([clinicId, paymentId])
   @@index([clinicId, cashShiftId])
 }
+
+enum LabOrderStatus {
+  ORDERED
+  COLLECTED
+  RESULTED
+  VALIDATED
+  CANCELLED
+}
+
+enum LabFlag {
+  NORMAL
+  LOW
+  HIGH
+  CRITICAL_LOW
+  CRITICAL_HIGH
+}
+
+model LabTest {
+  id           String   @id @default(uuid()) @db.Uuid
+  clinicId     String   @db.Uuid
+  serviceId    String?  @db.Uuid
+  code         String
+  nameUz       String
+  nameRu       String
+  unit         String?
+  refLow       Float?
+  refHigh      Float?
+  criticalLow  Float?
+  criticalHigh Float?
+  isNumeric    Boolean  @default(true)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([clinicId, code])
+}
+
+model LabOrder {
+  id                String         @id @default(uuid()) @db.Uuid
+  clinicId          String         @db.Uuid
+  branchId          String         @db.Uuid
+  patientId         String         @db.Uuid
+  encounterId       String?        @db.Uuid
+  orderedByUserId   String         @db.Uuid
+  barcode           String
+  status            LabOrderStatus @default(ORDERED)
+  collectedAt       DateTime?
+  resultedAt        DateTime?
+  validatedAt       DateTime?
+  validatedByUserId String?        @db.Uuid
+  version           Int            @default(1)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  items LabOrderItem[]
+
+  @@unique([clinicId, barcode])
+  @@index([clinicId, patientId])
+  @@index([clinicId, status, createdAt])
+}
+
+model LabOrderItem {
+  id              String    @id @default(uuid()) @db.Uuid
+  clinicId        String    @db.Uuid
+  orderId         String    @db.Uuid
+  testId          String    @db.Uuid
+  testCode        String
+  testName        String
+  unit            String?
+  refLow          Float?
+  refHigh         Float?
+  value           String?
+  numericValue    Float?
+  flag            LabFlag?
+  note            String?
+  enteredByUserId String?   @db.Uuid
+  enteredAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  order LabOrder @relation(fields: [orderId], references: [id])
+
+  @@index([clinicId])
+  @@index([orderId])
+}

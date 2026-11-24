@@ -34,6 +34,9 @@ export const TENANT_MODELS = [
   'CashShift',
   'Payment',
   'Refund',
+  'LabTest',
+  'LabOrder',
+  'LabOrderItem',
 ] as const;
 
 const TENANT_SET = new Set<string>(TENANT_MODELS);

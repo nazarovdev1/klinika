@@ -56,6 +56,22 @@ export function requirePermission(...needed: Permission[]): RequestHandler {
   };
 }
 
+/** Passes when the caller holds at least one of the listed permissions. */
+export function requireAnyPermission(...options: Permission[]): RequestHandler {
+  return (req, _res, next) => {
+    const auth = req.auth;
+    if (!auth) {
+      next(new AppError(401, 'UNAUTHENTICATED', 'Not authenticated'));
+      return;
+    }
+    if (!options.some((p) => auth.permissions.includes(p))) {
+      next(new AppError(403, 'FORBIDDEN', 'Insufficient permissions'));
+      return;
+    }
+    next();
+  };
+}
+
 export function getAuth(req: Pick<Request, 'auth'>): AuthContext {
   if (!req.auth) throw new AppError(401, 'UNAUTHENTICATED', 'Not authenticated');
   return req.auth;
