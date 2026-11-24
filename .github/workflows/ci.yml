@@ -24,6 +24,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm --filter @shifo/api exec playwright install --with-deps chromium
       - run: pnpm test
       - run: pnpm build
       - run: docker compose -f infra/docker-compose.yml config -q
@@ -33,3 +34,12 @@ jobs:
           JWT_ACCESS_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
           PII_KEYS: k1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           PII_HMAC_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f infra/Dockerfile.api -t shifo-api .
+      - run: docker build -f infra/Dockerfile.web -t shifo-web .
+      - run: docker build -f infra/Dockerfile.mock-dhp -t shifo-mock-dhp .

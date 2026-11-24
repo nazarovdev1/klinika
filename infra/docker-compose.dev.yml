@@ -9,4 +9,5 @@ services:
     profiles: []
     ports: ['8025:8025', '1025:1025']
   mock-dhp:
+    profiles: []
     ports: ['8090:8090']

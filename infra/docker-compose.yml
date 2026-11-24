@@ -1,19 +1,31 @@
 name: shifo
 
+# Required in .env (see .env.example): POSTGRES_PASSWORD, WEB_ORIGIN, JWT_ACCESS_SECRET, PII_KEYS,
+# PII_HMAC_KEY. Production: SITE_ADDRESS=<your domain> for automatic TLS, COOKIE_SECURE=true.
 x-env: &app-env
   NODE_ENV: production
   DATABASE_URL: postgresql://shifo:${POSTGRES_PASSWORD}@postgres:5432/shifo
   REDIS_URL: redis://redis:6379
   WEB_ORIGIN: ${WEB_ORIGIN}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
   JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
   PII_KEYS: ${PII_KEYS}
   PII_ACTIVE_KEY_ID: ${PII_ACTIVE_KEY_ID:-k1}
   PII_HMAC_KEY: ${PII_HMAC_KEY}
   LOG_LEVEL: ${LOG_LEVEL:-info}
+  REALTIME_REDIS: 'on'
+  DB_RLS: ${DB_RLS:-off}
+  DATABASE_SYSTEM_URL: ${DATABASE_SYSTEM_URL:-}
+  DHP_MODE: ${DHP_MODE:-mock}
+  DHP_BASE_URL: ${DHP_BASE_URL:-}
+  SMS_MODE: ${SMS_MODE:-mock}
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+  TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
 
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: shifo
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -26,38 +38,92 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     volumes: [redisdata:/data]
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       retries: 10
 
-  api:
-    build: { context: .., dockerfile: infra/Dockerfile.node, args: { APP: api } }
-    environment: { <<: *app-env, API_PORT: 4000 }
+  # One-shot: applies pending migrations, then exits. api/worker wait for it.
+  migrate:
+    build: { context: .., dockerfile: infra/Dockerfile.api }
+    environment: { <<: *app-env }
+    working_dir: /app/node_modules/@shifo/db
+    command: ['npx', '--no-install', 'prisma', 'migrate', 'deploy']
     depends_on:
       postgres: { condition: service_healthy }
+    restart: 'no'
+
+  api:
+    build: { context: .., dockerfile: infra/Dockerfile.api }
+    restart: unless-stopped
+    environment: { <<: *app-env, API_PORT: 4000 }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:4000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      retries: 6
 
   worker:
-    build: { context: .., dockerfile: infra/Dockerfile.node, args: { APP: worker } }
+    build: { context: .., dockerfile: infra/Dockerfile.api }
+    restart: unless-stopped
+    command: ['node', 'dist/worker.js']
     environment: { <<: *app-env }
     depends_on:
-      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
 
   web:
     build: { context: .., dockerfile: infra/Dockerfile.web }
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:4000
     depends_on: [api]
 
   caddy:
     image: caddy:2-alpine
+    restart: unless-stopped
     ports: ['80:80', '443:443']
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddydata:/data
+      - caddyconfig:/config
     depends_on: [api, web]
+
+  # Nightly pg_dump into the `backups` volume (14 days kept). Mount the volume on separate storage and/or
+  # set BACKUP_RSYNC_TARGET for an off-site copy. Restore drill: docs/runbook.md.
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGUSER: shifo
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: shifo
+      BACKUP_DIR: /backups
+      KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./backup:/scripts:ro
+      - backups:/backups
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        while true; do
+          sh /scripts/backup.sh || echo "BACKUP FAILED" >&2
+          sleep 86400
+        done
+    depends_on:
+      postgres: { condition: service_healthy }
 
   mailpit:
     image: axllent/mailpit:v1.21
@@ -66,8 +132,11 @@ services:
   mock-dhp:
     build: { context: .., dockerfile: infra/Dockerfile.mock-dhp }
     environment: { PORT: 8090 }
+    profiles: [dev]
 
 volumes:
   pgdata:
   redisdata:
   caddydata:
+  caddyconfig:
+  backups:

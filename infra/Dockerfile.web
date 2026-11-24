@@ -4,6 +4,9 @@ RUN corepack enable
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile
+# next.config rewrites are fixed at build time: the API address inside the compose network.
+ARG API_INTERNAL_URL=http://api:4000
+ENV API_INTERNAL_URL=${API_INTERNAL_URL}
 RUN pnpm --filter @shifo/web... build
 
 FROM node:22-alpine

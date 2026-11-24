@@ -1,8 +1,13 @@
 import { z } from 'zod';
 
 /** Money is an integer amount in tiyin-free UZS "so'm" units, always a decimal string on the wire (BigInt in DB). */
-export const moneySchema = z.string().regex(/^\d{1,15}$/, 'non-negative integer amount as a string');
-export const positiveMoneySchema = moneySchema.refine((v) => BigInt(v) > 0n, 'must be greater than 0');
+export const moneySchema = z
+  .string()
+  .regex(/^\d{1,15}$/, 'non-negative integer amount as a string');
+export const positiveMoneySchema = moneySchema.refine(
+  (v) => BigInt(v) > 0n,
+  'must be greater than 0',
+);
 
 export const PAYMENT_METHODS = ['CASH', 'CARD', 'CLICK', 'PAYME', 'UZUM'] as const;
 export const paymentMethodSchema = z.enum(PAYMENT_METHODS);

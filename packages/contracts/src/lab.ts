@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const num = z.number().finite();
+const num = z.number();
 
 export const labTestInputSchema = z
   .object({

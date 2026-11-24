@@ -1,3 +1,5 @@
+import { createAdapter } from '@socket.io/redis-adapter';
+import { Redis } from 'ioredis';
 import type { Server as HttpServer } from 'node:http';
 import type { Db } from '@shifo/db';
 import { Server } from 'socket.io';
@@ -32,6 +34,17 @@ export function createSocketRealtime(
     cors: { origin: env.WEB_ORIGIN, credentials: true },
     path: '/socket.io',
   });
+
+  // Several API replicas: fan events out through Redis so every client gets them whichever node it is on.
+  if (env.REALTIME_REDIS === 'on') {
+    const pub = new Redis(env.REDIS_URL);
+    const sub = pub.duplicate();
+    io.adapter(createAdapter(pub, sub));
+    httpServer.on('close', () => {
+      pub.disconnect();
+      sub.disconnect();
+    });
+  }
 
   io.use((socket, next) => {
     const token = (socket.handshake.auth as { token?: string }).token;

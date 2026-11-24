@@ -1,7 +1,20 @@
-# Set SITE_ADDRESS to the public domain in production for automatic TLS (e.g. clinic.example.uz).
-# Locally it defaults to :80 (plain HTTP).
+# Set SITE_ADDRESS to the public domain in production: Caddy then obtains and renews a TLS certificate
+# automatically and redirects HTTP to HTTPS. Locally it defaults to :80 (plain HTTP, no TLS).
 {$SITE_ADDRESS::80} {
 	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	request_body {
+		max_size 12MB
+	}
 
 	handle /api/* {
 		reverse_proxy api:4000
@@ -11,5 +24,10 @@
 	}
 	handle {
 		reverse_proxy web:3000
+	}
+
+	log {
+		output stdout
+		format json
 	}
 }

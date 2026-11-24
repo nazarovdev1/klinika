@@ -7,6 +7,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   /** Owner/migrator role used by system() when DB_RLS=on (the main URL is then the restricted app role). */
   DATABASE_SYSTEM_URL: z.string().optional(),
+  /** 'on' when running several API replicas (Socket.IO Redis adapter). */
+  REALTIME_REDIS: z.enum(['on', 'off']).default('off'),
   DB_RLS: z.enum(['on', 'off']).default('off'),
   REDIS_URL: z.string().min(1),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
