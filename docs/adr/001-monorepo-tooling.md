@@ -41,3 +41,18 @@ Status: accepted (2026-11-24)
   resends with `confirmDuplicate=true`.
 - **Web API access** goes through a Next.js rewrite (`/api/*` -> `API_INTERNAL_URL`) so the SameSite=Strict
   refresh cookie is same-origin.
+
+## Phase 3 decisions
+
+- **Double booking**: the exclusion constraint uses `tsrange("startsAt","endsAt")` (not `tstzrange`): Prisma stores
+  UTC `timestamp` columns and `tstzrange(timestamp, timestamp)` is not IMMUTABLE. All instants are UTC, so the
+  semantics are identical. The constraint is created in raw SQL in the `*_scheduling` migration (`btree_gist`).
+- **doctorId** in schedules/appointments/tickets is the doctor's `User.id` (role DOCTOR), not `DoctorProfile.id`.
+- **Queue numbers**: atomic `NumberSequence` upsert (`key='queue'`, per branch per local day).
+- **Prisma interactive transactions** default to 10 s max wait / 30 s timeout (`createDb`), because concurrent writers
+  wait on row locks and the dev database is remote (~230 ms RTT).
+- **Public screen**: `GET /api/v1/screen/:token` and the `/screen` Socket.IO namespace are addressed by the revocable
+  branch screen token (lives in `core/screen.ts`: the token identifies the tenant). No patient data is exposed.
+- Socket.IO Redis adapter is deferred to Phase 10 (needs Redis; marked TODO in `core/realtime.ts`).
+- Appointment status changes do not yet cancel/reschedule reminders: marked `TODO(phase-8)`.
+- The calendar UI (drag to reschedule) is not built yet; the API supports reschedule with conflict check.

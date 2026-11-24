@@ -28,7 +28,8 @@
   },
   "screen": {
     "title": "Navbat ekrani",
-    "empty": "Hozircha chaqirilgan bemor yo'q"
+    "empty": "Hozircha chaqirilgan bemor yo'q",
+    "cabinet": "Xona"
   },
   "patients": {
     "title": "Bemorlar",

@@ -2,14 +2,16 @@ import { createServer, type Server } from 'node:http';
 import { createDb } from '@shifo/db';
 import { createApp } from './app.js';
 import { parseEnv } from './config/env.js';
+import { createSocketRealtime } from './core/realtime.js';
 import { createLogger } from './core/logger.js';
 
-// Socket.IO is attached here in Phase 3.
 export function start(): Server {
   const env = parseEnv();
   const logger = createLogger(env.LOG_LEVEL);
   const db = createDb(env.DATABASE_URL);
-  const server = createServer(createApp(env, logger, db));
+  const server = createServer();
+  const { realtime } = createSocketRealtime(server, env, db);
+  server.on('request', createApp(env, logger, db, realtime));
 
   server.listen(env.API_PORT, () => {
     logger.info({ port: env.API_PORT }, 'api listening');

@@ -279,3 +279,178 @@ model PatientConsent {
   @@index([clinicId])
   @@index([patientId, type])
 }
+
+enum AppointmentStatus {
+  BOOKED
+  CONFIRMED
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum AppointmentSource {
+  FRONT_DESK
+  PHONE
+  TELEGRAM
+}
+
+enum QueueStatus {
+  WAITING
+  CALLED
+  IN_SERVICE
+  DONE
+  SKIPPED
+}
+
+enum ExceptionType {
+  DAY_OFF
+  CUSTOM_HOURS
+}
+
+model ServiceCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  clinicId  String   @db.Uuid
+  nameUz    String
+  nameRu    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  services Service[]
+
+  @@index([clinicId])
+}
+
+model Service {
+  id             String    @id @default(uuid()) @db.Uuid
+  clinicId       String    @db.Uuid
+  categoryId     String?   @db.Uuid
+  code           String
+  nameUz         String
+  nameRu         String
+  durationMin    Int       @default(20)
+  isLab          Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  dhpServiceCode String?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  category      ServiceCategory? @relation(fields: [categoryId], references: [id])
+  prices        ServicePrice[]
+  doctorService DoctorService[]
+
+  @@unique([clinicId, code])
+  @@index([clinicId])
+}
+
+model ServicePrice {
+  id        String    @id @default(uuid()) @db.Uuid
+  clinicId  String    @db.Uuid
+  serviceId String    @db.Uuid
+  branchId  String    @db.Uuid
+  price     BigInt
+  validFrom DateTime
+  validTo   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@index([clinicId])
+  @@index([serviceId, branchId, validFrom])
+}
+
+model DoctorService {
+  id        String   @id @default(uuid()) @db.Uuid
+  clinicId  String   @db.Uuid
+  doctorId  String   @db.Uuid
+  serviceId String   @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@unique([doctorId, serviceId])
+  @@index([clinicId])
+}
+
+model DoctorSchedule {
+  id          String    @id @default(uuid()) @db.Uuid
+  clinicId    String    @db.Uuid
+  doctorId    String    @db.Uuid
+  branchId    String    @db.Uuid
+  weekday     Int // 1 = Monday .. 7 = Sunday
+  startTime   String // HH:mm in the branch timezone
+  endTime     String
+  slotMinutes Int       @default(20)
+  validFrom   DateTime  @db.Date
+  validTo     DateTime? @db.Date
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([clinicId])
+  @@index([doctorId, branchId, weekday])
+}
+
+model ScheduleException {
+  id        String        @id @default(uuid()) @db.Uuid
+  clinicId  String        @db.Uuid
+  doctorId  String        @db.Uuid
+  branchId  String        @db.Uuid
+  date      DateTime      @db.Date
+  type      ExceptionType
+  startTime String?
+  endTime   String?
+  reason    String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([clinicId])
+  @@index([doctorId, date])
+}
+
+model Appointment {
+  id              String            @id @default(uuid()) @db.Uuid
+  clinicId        String            @db.Uuid
+  branchId        String            @db.Uuid
+  patientId       String            @db.Uuid
+  doctorId        String            @db.Uuid
+  serviceId       String?           @db.Uuid
+  startsAt        DateTime
+  endsAt          DateTime
+  status          AppointmentStatus @default(BOOKED)
+  source          AppointmentSource @default(FRONT_DESK)
+  note            String?
+  createdByUserId String?           @db.Uuid
+  version         Int               @default(1)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  // Double booking is prevented by a btree_gist exclusion constraint added in raw SQL
+  // (see migration *_scheduling): EXCLUDE (doctorId WITH =, tstzrange(startsAt, endsAt) WITH &&).
+
+  @@index([clinicId, startsAt])
+  @@index([doctorId, startsAt])
+  @@index([patientId])
+}
+
+model QueueTicket {
+  id            String      @id @default(uuid()) @db.Uuid
+  clinicId      String      @db.Uuid
+  branchId      String      @db.Uuid
+  date          String // YYYY-MM-DD in the branch timezone
+  number        Int
+  patientId     String      @db.Uuid
+  doctorId      String?     @db.Uuid
+  appointmentId String?     @db.Uuid
+  status        QueueStatus @default(WAITING)
+  calledAt      DateTime?
+  cabinet       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([branchId, date, number])
+  @@index([clinicId])
+  @@index([branchId, date, status])
+}

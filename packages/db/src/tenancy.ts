@@ -13,6 +13,14 @@ export const TENANT_MODELS = [
   'NumberSequence',
   'Patient',
   'PatientConsent',
+  'ServiceCategory',
+  'Service',
+  'ServicePrice',
+  'DoctorService',
+  'DoctorSchedule',
+  'ScheduleException',
+  'Appointment',
+  'QueueTicket',
 ] as const;
 
 const TENANT_SET = new Set<string>(TENANT_MODELS);

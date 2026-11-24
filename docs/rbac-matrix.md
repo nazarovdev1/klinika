@@ -22,6 +22,7 @@ Record-level rules (`*.policy.ts`):
 
 - Only an OWNER may create, modify, deactivate or reset the password of OWNER accounts.
 - Nobody can deactivate or change the role of their own account.
+- A DOCTOR only sees own appointments, only changes status of own appointments and queue tickets.
 - (Phase 4) DOCTOR sees/edits only own encounters; signed encounters are immutable.
 
 Note: the brief says ADMIN is "OWNER minus billing plan and deleting clinic". Neither exists in the MVP,

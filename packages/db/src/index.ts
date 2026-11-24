@@ -3,7 +3,7 @@ import { PrismaClient } from './generated/client.js';
 import { forTenant, type TenantClient } from './tenancy.js';
 
 export { PrismaClient, Prisma } from './generated/client.js';
-export type { Role, ClinicStatus, OutboxStatus, Sex, ConsentType } from './generated/client.js';
+export type { Role, ClinicStatus, OutboxStatus, Sex, ConsentType, AppointmentStatus, AppointmentSource, QueueStatus, ExceptionType } from './generated/client.js';
 export { forTenant, TENANT_MODELS, type TenantClient } from './tenancy.js';
 
 export interface Db {
@@ -16,7 +16,11 @@ export interface Db {
 
 export function createDb(connectionString: string, schema?: string): Db {
   const adapter = new PrismaPg({ connectionString }, schema ? { schema } : undefined);
-  const prisma = new PrismaClient({ adapter });
+  const prisma = new PrismaClient({
+    adapter,
+    // Concurrent writers (queue counter, exclusion constraint) wait on row locks; keep generous limits.
+    transactionOptions: { maxWait: 10_000, timeout: 30_000 },
+  });
   return {
     forTenant: (clinicId) => forTenant(prisma, clinicId),
     system: () => prisma,

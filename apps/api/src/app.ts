@@ -9,15 +9,25 @@ import type { Logger } from 'pino';
 import type { Env } from './config/env.js';
 import { createErrorHandler, notFoundHandler } from './core/errors.js';
 import { buildOpenApiDocument } from './core/openapi.js';
+import { noopRealtime, type Realtime } from './core/realtime.js';
 import { createPii } from './core/pii.js';
 import { requestId } from './core/request-id.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { clinicsRouter } from './modules/clinics/clinics.routes.js';
+import { catalogRouter } from './modules/catalog/catalog.routes.js';
+import { buildQueueService, queueRouter } from './modules/queue/queue.routes.js';
+import { schedulingService } from './modules/scheduling/scheduling.service.js';
+import { schedulingRouter } from './modules/scheduling/scheduling.routes.js';
 import { patientsRouter } from './modules/patients/patients.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { staffRouter } from './modules/staff/staff.routes.js';
 
-export function createApp(env: Env, logger: Logger, db: Db): Express {
+export function createApp(
+  env: Env,
+  logger: Logger,
+  db: Db,
+  realtime: Realtime = noopRealtime,
+): Express {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
@@ -42,6 +52,10 @@ export function createApp(env: Env, logger: Logger, db: Db): Express {
   app.use('/api/v1/staff', staffRouter(env, db));
   app.use('/api/v1/patients', patientsRouter(env, db, createPii(env)));
   app.use('/api/v1', clinicsRouter(env, db));
+  app.use('/api/v1', catalogRouter(env, db));
+  const queue = buildQueueService(db, realtime);
+  app.use('/api/v1', schedulingRouter(env, schedulingService(db, realtime, queue)));
+  app.use('/api/v1', queueRouter(env, db, queue));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger));

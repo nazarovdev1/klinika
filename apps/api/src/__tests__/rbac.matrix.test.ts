@@ -44,6 +44,41 @@ const endpoints: Endpoint[] = [
     body: {},
     allowed: ['OWNER', 'ADMIN', 'REGISTRAR'],
   },
+  { name: 'GET /services', method: 'get', path: '/api/v1/services', allowed: ROLES },
+  { name: 'POST /services', method: 'post', path: '/api/v1/services', body: {}, allowed: MANAGERS },
+  {
+    name: 'GET /appointments',
+    method: 'get',
+    path: '/api/v1/appointments',
+    allowed: ['OWNER', 'ADMIN', 'REGISTRAR', 'DOCTOR', 'NURSE'],
+  },
+  {
+    name: 'POST /appointments',
+    method: 'post',
+    path: '/api/v1/appointments',
+    body: {},
+    allowed: ['OWNER', 'ADMIN', 'REGISTRAR'],
+  },
+  {
+    name: 'GET /queue',
+    method: 'get',
+    path: '/api/v1/queue',
+    allowed: ['OWNER', 'ADMIN', 'REGISTRAR', 'DOCTOR'],
+  },
+  {
+    name: 'POST /queue/tickets',
+    method: 'post',
+    path: '/api/v1/queue/tickets',
+    body: {},
+    allowed: ['OWNER', 'ADMIN', 'REGISTRAR', 'DOCTOR'],
+  },
+  {
+    name: 'POST /queue/call-next',
+    method: 'post',
+    path: '/api/v1/queue/call-next',
+    body: {},
+    allowed: ['OWNER', 'ADMIN', 'REGISTRAR', 'DOCTOR'],
+  },
   { name: 'GET /auth/me', method: 'get', path: '/api/v1/auth/me', allowed: ROLES },
 ];
 
