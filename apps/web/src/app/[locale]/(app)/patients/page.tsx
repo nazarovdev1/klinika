@@ -2,14 +2,24 @@
 
 import { createPatientSchema, type PatientDto } from '@shifo/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Search, Send, UserPlus, Users, X } from 'lucide-react';
+import { Plus, Send, UserPlus, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, ErrorNote, Field, Input, Notice, Select } from '@/components/ui/form';
-import { EmptyState, PageHeader, Split, Toolbar } from '@/components/ui/page';
+import { ErrorNote, Field, Input, Notice, Select } from '@/components/ui/form';
+import {
+  EmptyState,
+  Facts,
+  Modal,
+  PaneHead,
+  PaneList,
+  Row,
+  SearchInput,
+  Workspace,
+} from '@/components/ui/page';
+import { Link } from '@/i18n/navigation';
 import { api, ApiError } from '@/lib/api';
-import { fmtDate } from '@/lib/format';
+import { fmtDate, fmtDateTime } from '@/lib/format';
 import { useSession } from '@/lib/session';
 
 const CONSENTS = ['DATA_PROCESSING', 'DHP_SHARING', 'SMS'] as const;
@@ -26,9 +36,67 @@ const EMPTY = {
   allergiesText: '',
 };
 
-function PatientDetail({ p, onClose }: { p: PatientDto; onClose: () => void }) {
+function PatientCard({ p }: { p: PatientDto }) {
   const t = useTranslations('patients');
+  const v = useTranslations('visits');
   const c = useTranslations('common');
+  const { can } = useSession();
+  const visits = useQuery({
+    queryKey: ['patient-visits', p.id],
+    enabled: can('encounters:read'),
+    queryFn: async () =>
+      (
+        await api<{ items: { id: string; status: string; startedAt: string }[] }>(
+          `/encounters?patientId=${p.id}&limit=10`,
+        )
+      ).items,
+  });
+  return (
+    <>
+      <article className="rounded-card bg-surface p-6">
+        <h2 className="mb-5 text-[22px] font-semibold leading-tight tracking-tight">
+          {p.lastName} {p.firstName} {p.middleName ?? ''}
+        </h2>
+        <Facts
+          items={[
+            [t('birthDate'), fmtDate(p.birthDate)],
+            [t('sex'), p.sex === 'MALE' ? t('male') : t('female')],
+            [t('phone'), p.phone],
+            [t('pinfl'), p.pinfl ?? '—'],
+            [t('passport'), p.passport ?? '—'],
+          ]}
+        />
+        {p.allergiesText && (
+          <div className="mt-5">
+            <Notice tone="danger">
+              <b className="font-semibold">{t('allergies')}:</b> {p.allergiesText}
+            </Notice>
+          </div>
+        )}
+      </article>
+      {can('encounters:read') && (
+        <section className="rounded-card bg-surface p-6">
+          <h3 className="mb-2 text-[16px] font-semibold">{t('visits')}</h3>
+          <ErrorNote error={visits.error} />
+          <ul className="divide-y divide-line">
+            {visits.data?.map((x) => (
+              <li key={x.id} className="flex items-center justify-between gap-3 py-2.5">
+                <Link className="num" href={`/visits/${x.id}`}>
+                  {fmtDateTime(x.startedAt)}
+                </Link>
+                <span className="text-[13px] text-ink-2">{v(`status.${x.status}`)}</span>
+              </li>
+            ))}
+          </ul>
+          {visits.data?.length === 0 && <p className="text-ink-2">{c('empty')}</p>}
+        </section>
+      )}
+    </>
+  );
+}
+
+function PatientSide({ p }: { p: PatientDto }) {
+  const t = useTranslations('patients');
   const { can } = useSession();
   const qc = useQueryClient();
   const consents = useQuery({
@@ -55,50 +123,28 @@ function PatientDetail({ p, onClose }: { p: PatientDto; onClose: () => void }) {
     const row = consents.data?.find((x) => x.type === type);
     return Boolean(row?.granted && !row.revokedAt);
   };
-  const facts: [string, string][] = [
-    [t('birthDate'), fmtDate(p.birthDate)],
-    [t('phone'), p.phone],
-    [t('pinfl'), p.pinfl ?? '—'],
-    [t('passport'), p.passport ?? '—'],
-    [t('allergies'), p.allergiesText ?? '—'],
-  ];
   return (
-    <Card
-      title={`${p.lastName} ${p.firstName}`}
-      actions={
-        <Button variant="ghost" size="sm" icon={X} onClick={onClose} aria-label={c('close')} />
-      }
-    >
-      <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-[14px]">
-        {facts.map(([k, v]) => (
-          <div key={k} className="contents">
-            <dt className="text-ink-2">{k}</dt>
-            <dd className="num">{v}</dd>
-          </div>
+    <>
+      <h2 className="text-[17px] font-semibold">{t('consents')}</h2>
+      <ErrorNote error={setConsent.error ?? link.error} />
+      <div className="space-y-2">
+        {CONSENTS.map((k) => (
+          <label key={k} className="flex items-center gap-2 text-[14px]">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-primary"
+              disabled={!can('patients:write')}
+              checked={active(k)}
+              onChange={(e) => {
+                setConsent.mutate({ type: k, granted: e.target.checked });
+              }}
+            />
+            {t(`consent.${k}`)}
+          </label>
         ))}
-      </dl>
-      <div className="border-t border-line pt-3">
-        <h3 className="mb-2 text-[14px] font-semibold">{t('consents')}</h3>
-        <ErrorNote error={setConsent.error ?? link.error} />
-        <div className="space-y-2">
-          {CONSENTS.map((k) => (
-            <label key={k} className="flex items-center gap-2 text-[14px]">
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-[#0b6e69]"
-                disabled={!can('patients:write')}
-                checked={active(k)}
-                onChange={(e) => {
-                  setConsent.mutate({ type: k, granted: e.target.checked });
-                }}
-              />
-              {t(`consent.${k}`)}
-            </label>
-          ))}
-        </div>
       </div>
       {can('patients:write') && (
-        <div className="space-y-2 border-t border-line pt-3">
+        <div className="space-y-2 border-t border-line pt-4">
           <Button
             variant="outline"
             size="sm"
@@ -117,7 +163,7 @@ function PatientDetail({ p, onClose }: { p: PatientDto; onClose: () => void }) {
           )}
         </div>
       )}
-    </Card>
+    </>
   );
 }
 
@@ -161,9 +207,11 @@ export default function PatientsPage() {
           parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
         );
       }
-      return api('/patients', { method: 'POST', json: parsed.data });
+      return api<PatientDto>('/patients', { method: 'POST', json: parsed.data });
     },
-    onSuccess: async () => {
+    onSuccess: async (created) => {
+      setOpen(created.id);
+      setQ('');
       setF(EMPTY);
       setDupe(false);
       setFormError(null);
@@ -184,172 +232,133 @@ export default function PatientsPage() {
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) => {
     setF({ ...f, [k]: e.target.value });
   };
-  const selected = list.data?.items.find((p) => p.id === open);
-
-  const form = (
-    <Card
-      title={t('newPatient')}
-      actions={
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={X}
-          aria-label={c('close')}
-          onClick={() => {
-            setCreating(false);
-          }}
-        />
-      }
-    >
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t('lastName')}>
-          <Input value={f.lastName} onChange={set('lastName')} />
-        </Field>
-        <Field label={t('firstName')}>
-          <Input value={f.firstName} onChange={set('firstName')} />
-        </Field>
-        <Field label={t('middleName')}>
-          <Input value={f.middleName} onChange={set('middleName')} />
-        </Field>
-        <Field label={t('birthDate')}>
-          <Input type="date" value={f.birthDate} onChange={set('birthDate')} />
-        </Field>
-        <Field label={t('sex')}>
-          <Select value={f.sex} onChange={set('sex')}>
-            <option value="MALE">{t('male')}</option>
-            <option value="FEMALE">{t('female')}</option>
-          </Select>
-        </Field>
-        <Field label={t('phone')}>
-          <Input className="num" value={f.phone} onChange={set('phone')} />
-        </Field>
-        <Field label={t('pinfl')}>
-          <Input className="num" inputMode="numeric" value={f.pinfl} onChange={set('pinfl')} />
-        </Field>
-        <Field label={t('passport')}>
-          <Input
-            className="num"
-            value={f.passport}
-            onChange={set('passport')}
-            placeholder="AA1234567"
-          />
-        </Field>
-        <Field label={t('allergies')} className="col-span-2">
-          <Input value={f.allergiesText} onChange={set('allergiesText')} />
-        </Field>
-      </div>
-      {formError && <Notice tone="warn">{formError}</Notice>}
-      <div className="flex gap-2">
-        <Button
-          icon={UserPlus}
-          loading={create.isPending}
-          onClick={() => {
-            create.mutate(false);
-          }}
-        >
-          {c('create')}
-        </Button>
-        {dupe && (
-          <Button
-            variant="outline"
-            disabled={create.isPending}
-            onClick={() => {
-              create.mutate(true);
-            }}
-          >
-            {t('createAnyway')}
-          </Button>
-        )}
-      </div>
-    </Card>
-  );
+  const items = list.data?.items ?? [];
+  const selected = items.find((p) => p.id === open) ?? items[0];
 
   return (
-    <section>
-      <PageHeader title={t('title')}>
-        {can('patients:write') && (
-          <Button
-            icon={UserPlus}
-            onClick={() => {
-              setCreating(true);
-              setOpen(null);
-            }}
-          >
-            {t('newPatient')}
-          </Button>
-        )}
-      </PageHeader>
-      <Toolbar>
-        <div className="relative w-full max-w-md">
-          <Search
-            size={16}
-            aria-hidden
-            className="pointer-events-none absolute left-3 top-[11px] text-ink-2"
-          />
-          <Input
-            type="search"
-            className="pl-9"
-            aria-label={t('search')}
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-            }}
-            placeholder={t('searchPlaceholder')}
-          />
-        </div>
-      </Toolbar>
-      <ErrorNote error={list.error} />
-      <Split
-        open={creating || Boolean(selected)}
-        panel={
-          creating
-            ? form
-            : selected && (
-                <PatientDetail
-                  p={selected}
-                  onClose={() => {
-                    setOpen(null);
-                  }}
-                />
-              )
-        }
-      >
-        <Card flush>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>{t('name')}</th>
-                <th>{t('birthDate')}</th>
-                <th>{t('phone')}</th>
-                <th>{t('pinfl')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.data?.items.map((p) => (
-                <tr
-                  key={p.id}
-                  data-clickable="true"
-                  aria-selected={open === p.id}
+    <Workspace
+      list={
+        <>
+          <PaneHead
+            title={t('title')}
+            action={
+              can('patients:write') && (
+                <Button
+                  icon={Plus}
+                  aria-label={t('newPatient')}
                   onClick={() => {
-                    setOpen(open === p.id ? null : p.id);
-                    setCreating(false);
+                    setCreating(true);
                   }}
                 >
-                  <td className="font-medium">
-                    {p.lastName} {p.firstName} {p.middleName ?? ''}
-                  </td>
-                  <td className="num">{fmtDate(p.birthDate)}</td>
-                  <td className="num">{p.phone}</td>
-                  <td className="num text-ink-2">{p.pinfl ?? '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {list.data?.items.length === 0 && !list.isFetching && (
-            <EmptyState icon={Users}>{t('empty')}</EmptyState>
-          )}
-        </Card>
-      </Split>
-    </section>
+                  {t('new')}
+                </Button>
+              )
+            }
+          >
+            <SearchInput
+              aria-label={t('search')}
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+              }}
+              placeholder={t('searchPlaceholder')}
+            />
+          </PaneHead>
+          <PaneList>
+            {items.map((p) => (
+              <Row
+                key={p.id}
+                selected={selected?.id === p.id}
+                onSelect={() => {
+                  setOpen(p.id);
+                }}
+                title={[p.lastName, p.firstName, p.middleName].filter(Boolean).join(' ')}
+                sub={p.phone}
+                status={<span className="num text-[12px] text-ink-2">{fmtDate(p.birthDate)}</span>}
+              />
+            ))}
+            {items.length === 0 && !list.isFetching && (
+              <li>
+                <EmptyState icon={Users}>{t('empty')}</EmptyState>
+              </li>
+            )}
+          </PaneList>
+        </>
+      }
+      side={selected ? <PatientSide key={selected.id} p={selected} /> : undefined}
+    >
+      <ErrorNote error={list.error} />
+      {selected && <PatientCard p={selected} />}
+      {!selected && list.isSuccess && <EmptyState icon={Users}>{t('empty')}</EmptyState>}
+      {creating && (
+        <Modal
+          title={t('newPatient')}
+          onClose={() => {
+            setCreating(false);
+          }}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t('lastName')}>
+              <Input value={f.lastName} onChange={set('lastName')} />
+            </Field>
+            <Field label={t('firstName')}>
+              <Input value={f.firstName} onChange={set('firstName')} />
+            </Field>
+            <Field label={t('middleName')}>
+              <Input value={f.middleName} onChange={set('middleName')} />
+            </Field>
+            <Field label={t('birthDate')}>
+              <Input type="date" value={f.birthDate} onChange={set('birthDate')} />
+            </Field>
+            <Field label={t('sex')}>
+              <Select value={f.sex} onChange={set('sex')}>
+                <option value="MALE">{t('male')}</option>
+                <option value="FEMALE">{t('female')}</option>
+              </Select>
+            </Field>
+            <Field label={t('phone')}>
+              <Input className="num" value={f.phone} onChange={set('phone')} />
+            </Field>
+            <Field label={t('pinfl')}>
+              <Input className="num" inputMode="numeric" value={f.pinfl} onChange={set('pinfl')} />
+            </Field>
+            <Field label={t('passport')}>
+              <Input
+                className="num"
+                value={f.passport}
+                onChange={set('passport')}
+                placeholder="AA1234567"
+              />
+            </Field>
+            <Field label={t('allergies')} className="col-span-2">
+              <Input value={f.allergiesText} onChange={set('allergiesText')} />
+            </Field>
+          </div>
+          {formError && <Notice tone="warn">{formError}</Notice>}
+          <div className="flex gap-2">
+            <Button
+              icon={UserPlus}
+              loading={create.isPending}
+              onClick={() => {
+                create.mutate(false);
+              }}
+            >
+              {c('create')}
+            </Button>
+            {dupe && (
+              <Button
+                variant="outline"
+                disabled={create.isPending}
+                onClick={() => {
+                  create.mutate(true);
+                }}
+              >
+                {t('createAnyway')}
+              </Button>
+            )}
+          </div>
+        </Modal>
+      )}
+    </Workspace>
   );
 }

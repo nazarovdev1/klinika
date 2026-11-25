@@ -43,6 +43,10 @@ export const replaceInvoiceLinesSchema = z.object({
 export const invoiceListSchema = z.object({
   patientId: z.uuid().optional(),
   status: z.enum(['DRAFT', 'ISSUED', 'PARTIAL', 'PAID', 'VOID']).optional(),
+  /** Only invoices still awaiting money (ISSUED or PARTIAL). */
+  due: z.literal('1').optional(),
+  /** Invoice number fragment or patient name. */
+  q: z.string().trim().max(100).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
   cursor: z.uuid().optional(),
 });

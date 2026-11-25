@@ -21,7 +21,8 @@
     "submit": "Kirish",
     "invalid": "Login yoki parol noto'g'ri",
     "locked": "Akkaunt vaqtincha bloklangan",
-    "rateLimited": "Juda ko'p urinish, bir ozdan keyin qayta urinib ko'ring"
+    "rateLimited": "Juda ko'p urinish, bir ozdan keyin qayta urinib ko'ring",
+    "tagline": "Klinika ishini bitta joydan boshqaring"
   },
   "home": {
     "welcome": "Shifo klinika boshqaruv tizimiga xush kelibsiz"
@@ -60,7 +61,9 @@
     "allergies": "Allergiya",
     "dupHard": "Bu PINFL bilan bemor allaqachon mavjud",
     "dupSoft": "O‘xshash bemor topildi (ism, tug‘ilgan sana, telefon). Tekshiring.",
-    "createAnyway": "Baribir yaratish"
+    "createAnyway": "Baribir yaratish",
+    "visits": "Qabullar tarixi",
+    "new": "Yangi"
   },
   "integration": {
     "title": "DHP integratsiyasi",
@@ -79,7 +82,14 @@
     "retry": "Qayta urinish",
     "empty": "Yozuvlar yo‘q",
     "all": "Barchasi",
-    "loadError": "Yuklab bo‘lmadi"
+    "loadError": "Yuklab bo‘lmadi",
+    "s": {
+      "PENDING": "Kutmoqda",
+      "SENT": "Yuborilgan",
+      "FAILED": "Xato",
+      "DEAD": "To‘xtatilgan",
+      "SKIPPED": "O‘tkazilgan"
+    }
   },
   "common": {
     "save": "Saqlash",
@@ -117,7 +127,9 @@
     "loadMore": "Yana yuklash",
     "required": "To‘ldirish shart",
     "saved": "Saqlandi",
-    "noAccess": "Bu bo‘limga ruxsat yo‘q"
+    "noAccess": "Bu bo‘limga ruxsat yo‘q",
+    "all": "Hammasi",
+    "selectHint": "Ro‘yxatdan tanlang"
   },
   "changePassword": {
     "title": "Parolni o‘zgartirish",
@@ -137,7 +149,17 @@
     "quickPatient": "Yangi bemor",
     "quickVisits": "Mening qabullarim",
     "revenue14": "Tushum, so‘nggi 14 kun (so‘m)",
-    "visits14": "Qabullar, so‘nggi 14 kun"
+    "visits14": "Qabullar, so‘nggi 14 kun",
+    "measure": "Ko‘rsatkich",
+    "mRevenue": "Tushum",
+    "mVisits": "Qabullar",
+    "last14": "So‘nggi 14 kun",
+    "before14": "Oldingi 14 kun",
+    "vsBefore": "oldingi 14 kunga nisbatan",
+    "byMethod": "To‘lov usullari, 14 kun (so‘m)",
+    "byDoctor": "Shifokorlar tushumi, 14 kun (so‘m)",
+    "noDoctor": "Shifokor ko‘rsatilmagan",
+    "otherDoctors": "Yana {n} ta shifokor"
   },
   "calendar": {
     "title": "Kalendar",
@@ -174,7 +196,10 @@
       "IN_SERVICE": "Qabulda",
       "DONE": "Tugadi",
       "SKIPPED": "O‘tkazib yuborildi"
-    }
+    },
+    "ticket": "Talon",
+    "active": "Faol",
+    "skip": "O‘tkazish"
   },
   "visits": {
     "title": "Qabullar",
@@ -266,7 +291,24 @@
       "PARTIAL": "Qisman",
       "PAID": "To‘langan",
       "VOID": "Bekor"
-    }
+    },
+    "all": "Hammasi",
+    "due": "Qarzdor",
+    "searchInvoice": "Bemor yoki hisob raqami",
+    "newShort": "Yangi",
+    "payTitle": "To‘lovni qabul qilish",
+    "full": "To‘liq",
+    "half": "Yarmi",
+    "erase": "O‘chirish",
+    "needShift": "Naqd pul olish uchun shu filialda smenani oching.",
+    "tooMuch": "Summa qoldiqdan oshmasin",
+    "settled": "To‘liq to‘langan",
+    "isVoid": "Hisob bekor qilingan",
+    "draftHint": "To‘lov olishdan oldin hisobni chiqaring.",
+    "selectHint": "Ro‘yxatdan hisobni tanlang",
+    "noMatch": "Mos hisob topilmadi. Qidiruv yoki filtrni o‘zgartiring.",
+    "qty": "Soni",
+    "payments": "To‘lovlar tarixi"
   },
   "lab": {
     "title": "Laboratoriya",
@@ -284,7 +326,16 @@
       "RESULTED": "Natija kiritilgan",
       "VALIDATED": "Tasdiqlangan",
       "CANCELLED": "Bekor"
-    }
+    },
+    "tests": "Tahlillar",
+    "steps": "Keyingi amal",
+    "flag": {
+      "LOW": "Past",
+      "HIGH": "Yuqori",
+      "CRITICAL_LOW": "Juda past",
+      "CRITICAL_HIGH": "Juda yuqori"
+    },
+    "new": "Yangi"
   },
   "reports": {
     "title": "Hisobotlar",

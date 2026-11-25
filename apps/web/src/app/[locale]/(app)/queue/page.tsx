@@ -8,6 +8,7 @@ import {
   ListOrdered,
   Megaphone,
   Monitor,
+  Plus,
   Stethoscope,
   Ticket,
   UserX,
@@ -16,8 +17,8 @@ import {
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, ErrorNote, Field, Input, Select, Status, type Tone } from '@/components/ui/form';
-import { EmptyState, PageHeader, Split, Toolbar } from '@/components/ui/page';
+import { ErrorNote, Field, Input, Select, Status, type Tone } from '@/components/ui/form';
+import { EmptyState, Modal, PaneHead, PaneList, Pills, Row, Workspace } from '@/components/ui/page';
 import { api } from '@/lib/api';
 import { PatientPicker, useBranches, useDoctors } from '@/lib/queries';
 
@@ -47,6 +48,9 @@ export default function QueuePage() {
   const [cabinet, setCabinet] = useState('');
   const [patient, setPatient] = useState<PatientDto | null>(null);
   const [doctorId, setDoctorId] = useState('');
+  const [issuing, setIssuing] = useState(false);
+  const [filter, setFilter] = useState<'active' | 'WAITING' | 'DONE' | 'all'>('active');
+  const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
     if (!branchId && branches.data?.[0]) setBranchId(branches.data[0].id);
@@ -67,16 +71,20 @@ export default function QueuePage() {
       }),
     onSuccess: async () => {
       setPatient(null);
+      setIssuing(false);
       await refresh();
     },
   });
   const callNext = useMutation({
     mutationFn: () =>
-      api('/queue/call-next', {
+      api<{ id: string }>('/queue/call-next', {
         method: 'POST',
         json: { branchId, cabinet: cabinet || undefined },
       }),
-    onSuccess: refresh,
+    onSuccess: async (k) => {
+      setSelected(k.id);
+      await refresh();
+    },
   });
   const setStatus = useMutation({
     mutationFn: (v: { id: string; status: string }) =>
@@ -84,169 +92,233 @@ export default function QueuePage() {
     onSuccess: refresh,
   });
   const branch = branches.data?.find((b) => b.id === branchId);
+  const all = list.data?.items ?? [];
+  const order: Ticket['status'][] = ['IN_SERVICE', 'CALLED', 'WAITING'];
+  const isActive = (k: Ticket) => order.includes(k.status);
+  const shown = all.filter((k) =>
+    filter === 'all' ? true : filter === 'active' ? isActive(k) : k.status === filter,
+  );
+  // Until someone picks a ticket, show the one closest to the doctor.
+  const current =
+    all.find((k) => k.id === selected) ??
+    order.map((s) => all.find((k) => k.status === s)).find(Boolean) ??
+    null;
   const waiting = list.data?.items.filter((k) => k.status === 'WAITING').length ?? 0;
 
-  const issuePanel = (
-    <Card title={t('issue')}>
-      <Field label={c('patient')}>
-        <PatientPicker value={patient} onChange={setPatient} />
-      </Field>
-      <Field label={c('doctor')}>
-        <Select
-          value={doctorId}
-          onChange={(e) => {
-            setDoctorId(e.target.value);
-          }}
-        >
-          <option value="">—</option>
-          {doctors.data?.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.fullName}
-            </option>
-          ))}
-        </Select>
-      </Field>
-      <Button
-        icon={Ticket}
-        disabled={!patient}
-        loading={issue.isPending}
-        onClick={() => {
-          issue.mutate();
-        }}
-      >
-        {t('issueButton')}
-      </Button>
-      <ErrorNote error={issue.error} />
-    </Card>
-  );
-
   return (
-    <section>
-      <PageHeader
-        title={t('title')}
-        sub={`${String(waiting)} ${t('status.WAITING').toLowerCase()}`}
-      >
-        {branch?.screenToken && (
-          <a
-            className="inline-flex h-9 items-center gap-2 rounded-control border border-line bg-surface px-3.5 text-[14px] text-ink no-underline hover:bg-row-hover hover:text-ink"
-            href={`/screen/${branch.screenToken}`}
-            target="_blank"
-            rel="noreferrer"
+    <Workspace
+      list={
+        <>
+          <PaneHead
+            title={t('title')}
+            action={
+              <Button
+                variant="outline"
+                icon={Plus}
+                onClick={() => {
+                  setIssuing(true);
+                }}
+              >
+                {t('ticket')}
+              </Button>
+            }
           >
-            <Monitor size={16} aria-hidden />
-            {t('screenLink')}
-          </a>
-        )}
-      </PageHeader>
-      <Toolbar>
-        <Field label={c('branch')} className="w-56">
-          <Select
-            value={branchId}
-            onChange={(e) => {
-              setBranchId(e.target.value);
+            <p className="text-[13px] text-ink-2">
+              {t('status.WAITING')}: <b className="num font-semibold text-ink">{waiting}</b>
+            </p>
+            <Pills
+              label={c('status')}
+              value={filter}
+              onChange={setFilter}
+              options={[
+                { id: 'active', label: t('active') },
+                { id: 'WAITING', label: t('status.WAITING') },
+                { id: 'DONE', label: t('status.DONE') },
+                { id: 'all', label: c('all') },
+              ]}
+            />
+          </PaneHead>
+          <PaneList>
+            {shown.map((k) => {
+              const st = ST[k.status];
+              return (
+                <Row
+                  key={k.id}
+                  selected={current?.id === k.id}
+                  onSelect={() => {
+                    setSelected(k.id);
+                  }}
+                  title={k.patientName}
+                  end={<span className="text-[18px]">{k.number}</span>}
+                  sub={k.cabinet ? `${t('cabinet')} ${k.cabinet}` : ''}
+                  status={
+                    <Status tone={st.tone} icon={st.icon}>
+                      {t(`status.${k.status}`)}
+                    </Status>
+                  }
+                />
+              );
+            })}
+            {list.isSuccess && shown.length === 0 && (
+              <li>
+                <EmptyState icon={ListOrdered}>{c('empty')}</EmptyState>
+              </li>
+            )}
+          </PaneList>
+        </>
+      }
+      side={
+        <>
+          <h2 className="text-[17px] font-semibold">{t('callNext')}</h2>
+          <Field label={c('branch')}>
+            <Select
+              value={branchId}
+              onChange={(e) => {
+                setBranchId(e.target.value);
+                setSelected(null);
+              }}
+            >
+              {branches.data?.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label={t('cabinet')}>
+            <Input
+              className="num"
+              value={cabinet}
+              onChange={(e) => {
+                setCabinet(e.target.value);
+              }}
+            />
+          </Field>
+          <Button
+            size="lg"
+            icon={Megaphone}
+            disabled={!branchId || waiting === 0}
+            loading={callNext.isPending}
+            onClick={() => {
+              callNext.mutate();
             }}
           >
-            {branches.data?.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label={t('cabinet')} className="w-28">
-          <Input
-            className="num"
-            value={cabinet}
-            onChange={(e) => {
-              setCabinet(e.target.value);
-            }}
-          />
-        </Field>
-        <Button
-          icon={Megaphone}
-          disabled={!branchId}
-          loading={callNext.isPending}
-          onClick={() => {
-            callNext.mutate();
+            {t('callNext')}
+          </Button>
+          {branch?.screenToken && (
+            <a
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-control border border-line text-[14px] text-ink no-underline hover:bg-row-hover hover:text-ink"
+              href={`/screen/${branch.screenToken}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Monitor size={16} aria-hidden />
+              {t('screenLink')}
+            </a>
+          )}
+        </>
+      }
+    >
+      <ErrorNote error={list.error ?? callNext.error ?? setStatus.error} />
+      {current ? (
+        <div className="mx-auto w-full max-w-[440px] drop-shadow-[0_8px_16px_rgba(20,36,95,0.12)]">
+          <article className="receipt text-center">
+            <p className="text-ink-2">{t('ticket')}</p>
+            <p className="num text-[112px] font-semibold leading-none tracking-tighter text-primary">
+              {current.number}
+            </p>
+            <hr />
+            <h2 className="text-[20px] font-semibold">{current.patientName}</h2>
+            {current.cabinet && (
+              <p className="num mt-1 text-ink-2">
+                {t('cabinet')} {current.cabinet}
+              </p>
+            )}
+            <div className="mt-3">
+              <Status tone={ST[current.status].tone} icon={ST[current.status].icon}>
+                {t(`status.${current.status}`)}
+              </Status>
+            </div>
+            {(current.status === 'CALLED' || current.status === 'WAITING') && (
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  icon={UserX}
+                  disabled={setStatus.isPending}
+                  onClick={() => {
+                    setStatus.mutate({ id: current.id, status: 'SKIPPED' });
+                  }}
+                >
+                  {t('skip')}
+                </Button>
+                <Button
+                  icon={Stethoscope}
+                  disabled={setStatus.isPending}
+                  onClick={() => {
+                    setSelected(current.id);
+                    setStatus.mutate({ id: current.id, status: 'IN_SERVICE' });
+                  }}
+                >
+                  {t('status.IN_SERVICE')}
+                </Button>
+              </div>
+            )}
+            {current.status === 'IN_SERVICE' && (
+              <Button
+                className="mt-5 w-full"
+                icon={CheckCheck}
+                disabled={setStatus.isPending}
+                onClick={() => {
+                  setSelected(null);
+                  setStatus.mutate({ id: current.id, status: 'DONE' });
+                }}
+              >
+                {t('status.DONE')}
+              </Button>
+            )}
+          </article>
+        </div>
+      ) : (
+        list.isSuccess && <EmptyState icon={ListOrdered}>{c('empty')}</EmptyState>
+      )}
+      {issuing && (
+        <Modal
+          title={t('issue')}
+          onClose={() => {
+            setIssuing(false);
           }}
         >
-          {t('callNext')}
-        </Button>
-      </Toolbar>
-      <ErrorNote error={list.error ?? callNext.error ?? setStatus.error} />
-
-      <Split open panel={issuePanel}>
-        <Card flush>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th className="w-20">№</th>
-                <th>{c('patient')}</th>
-                <th>{c('status')}</th>
-                <th className="r">{c('actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.data?.items.map((k) => {
-                const st = ST[k.status];
-                return (
-                  <tr key={k.id}>
-                    <td className="num text-[18px] font-semibold">{k.number}</td>
-                    <td>{k.patientName}</td>
-                    <td>
-                      <Status tone={st.tone} icon={st.icon}>
-                        {t(`status.${k.status}`)}
-                      </Status>
-                      {k.cabinet && <span className="num ml-2 text-ink-2">{k.cabinet}</span>}
-                    </td>
-                    <td className="r">
-                      <span className="inline-flex gap-1.5">
-                        {(k.status === 'CALLED' || k.status === 'WAITING') && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setStatus.mutate({ id: k.id, status: 'IN_SERVICE' });
-                              }}
-                            >
-                              {t('status.IN_SERVICE')}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setStatus.mutate({ id: k.id, status: 'SKIPPED' });
-                              }}
-                            >
-                              {t('status.SKIPPED')}
-                            </Button>
-                          </>
-                        )}
-                        {k.status === 'IN_SERVICE' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            icon={CheckCheck}
-                            onClick={() => {
-                              setStatus.mutate({ id: k.id, status: 'DONE' });
-                            }}
-                          >
-                            {t('status.DONE')}
-                          </Button>
-                        )}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {list.data?.items.length === 0 && (
-            <EmptyState icon={ListOrdered}>{c('empty')}</EmptyState>
-          )}
-        </Card>
-      </Split>
-    </section>
+          <Field label={c('patient')}>
+            <PatientPicker value={patient} onChange={setPatient} />
+          </Field>
+          <Field label={c('doctor')}>
+            <Select
+              value={doctorId}
+              onChange={(e) => {
+                setDoctorId(e.target.value);
+              }}
+            >
+              <option value="">—</option>
+              {doctors.data?.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.fullName}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Button
+            icon={Ticket}
+            disabled={!patient}
+            loading={issue.isPending}
+            onClick={() => {
+              issue.mutate();
+            }}
+          >
+            {t('issueButton')}
+          </Button>
+          <ErrorNote error={issue.error} />
+        </Modal>
+      )}
+    </Workspace>
   );
 }

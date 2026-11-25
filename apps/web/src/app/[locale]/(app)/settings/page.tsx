@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, ErrorNote, Field, Input, Select, Status } from '@/components/ui/form';
-import { PageHeader, Tabs } from '@/components/ui/page';
+import { Modal, PaneHead, PaneNav, Workspace } from '@/components/ui/page';
 import { api } from '@/lib/api';
 import { formatMoney, parseMoney, today } from '@/lib/format';
 import { useBranches, useDoctors, useServices } from '@/lib/queries';
@@ -26,6 +26,7 @@ function StaffTab() {
     queryKey: ['staff'],
     queryFn: () => api<{ items: StaffDto[] }>('/staff?limit=100'),
   });
+  const [creating, setCreating] = useState(false);
   const [f, setF] = useState({
     fullName: '',
     phone: '+998',
@@ -52,6 +53,7 @@ function StaffTab() {
       }),
     onSuccess: async () => {
       setF({ ...f, fullName: '', login: '', password: '' });
+      setCreating(false);
       await qc.invalidateQueries({ queryKey: ['staff'] });
       await qc.invalidateQueries({ queryKey: ['doctors'] });
     },
@@ -65,10 +67,20 @@ function StaffTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['staff'] }),
   });
   return (
-    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+    <div>
       <div className="space-y-3">
-        <ErrorNote error={staff.error ?? create.error ?? toggle.error} />
-        <Card flush>
+        <div className="flex justify-end">
+          <Button
+            icon={Plus}
+            onClick={() => {
+              setCreating(true);
+            }}
+          >
+            {t('newStaff')}
+          </Button>
+        </div>
+        <ErrorNote error={staff.error ?? toggle.error} />
+        <Card flush className="overflow-x-auto">
           <table className="tbl">
             <thead>
               <tr>
@@ -108,77 +120,85 @@ function StaffTab() {
           </table>
         </Card>
       </div>
-      <Card title={t('newStaff')}>
-        <Field label={t('fullName')}>
-          <Input
-            value={f.fullName}
-            onChange={(e) => {
-              setF({ ...f, fullName: e.target.value });
-            }}
-          />
-        </Field>
-        <Field label={t('phone')}>
-          <Input
-            className="num"
-            value={f.phone}
-            onChange={(e) => {
-              setF({ ...f, phone: e.target.value });
-            }}
-          />
-        </Field>
-        <Field label={t('login')}>
-          <Input
-            value={f.login}
-            onChange={(e) => {
-              setF({ ...f, login: e.target.value });
-            }}
-          />
-        </Field>
-        <Field label={t('tempPassword')}>
-          <Input
-            type="password"
-            autoComplete="new-password"
-            value={f.password}
-            onChange={(e) => {
-              setF({ ...f, password: e.target.value });
-            }}
-          />
-        </Field>
-        <Field label={t('role')}>
-          <Select
-            value={f.role}
-            onChange={(e) => {
-              setF({ ...f, role: e.target.value });
-            }}
-          >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        {f.role === 'DOCTOR' && (
-          <Field label={t('specialty')}>
+      {creating && (
+        <Modal
+          title={t('newStaff')}
+          onClose={() => {
+            setCreating(false);
+          }}
+        >
+          <ErrorNote error={create.error} />
+          <Field label={t('fullName')}>
             <Input
-              value={f.specialty}
+              value={f.fullName}
               onChange={(e) => {
-                setF({ ...f, specialty: e.target.value });
+                setF({ ...f, fullName: e.target.value });
               }}
             />
           </Field>
-        )}
-        <Button
-          icon={UserPlus}
-          loading={create.isPending}
-          disabled={!f.fullName || !f.login || !f.password}
-          onClick={() => {
-            create.mutate();
-          }}
-        >
-          {c('create')}
-        </Button>
-      </Card>
+          <Field label={t('phone')}>
+            <Input
+              className="num"
+              value={f.phone}
+              onChange={(e) => {
+                setF({ ...f, phone: e.target.value });
+              }}
+            />
+          </Field>
+          <Field label={t('login')}>
+            <Input
+              value={f.login}
+              onChange={(e) => {
+                setF({ ...f, login: e.target.value });
+              }}
+            />
+          </Field>
+          <Field label={t('tempPassword')}>
+            <Input
+              type="password"
+              autoComplete="new-password"
+              value={f.password}
+              onChange={(e) => {
+                setF({ ...f, password: e.target.value });
+              }}
+            />
+          </Field>
+          <Field label={t('role')}>
+            <Select
+              value={f.role}
+              onChange={(e) => {
+                setF({ ...f, role: e.target.value });
+              }}
+            >
+              {ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          {f.role === 'DOCTOR' && (
+            <Field label={t('specialty')}>
+              <Input
+                value={f.specialty}
+                onChange={(e) => {
+                  setF({ ...f, specialty: e.target.value });
+                }}
+              />
+            </Field>
+          )}
+          <Button
+            icon={UserPlus}
+            loading={create.isPending}
+            disabled={!f.fullName || !f.login || !f.password}
+            onClick={() => {
+              create.mutate();
+            }}
+          >
+            {c('create')}
+          </Button>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -191,6 +211,7 @@ function CatalogTab() {
   const branchId = branches.data?.[0]?.id;
   const [q, setQ] = useState('');
   const services = useServices(branchId, q);
+  const [creating, setCreating] = useState(false);
   const [f, setF] = useState({ code: '', nameUz: '', nameRu: '', price: '' });
   const [priceEdit, setPriceEdit] = useState<Record<string, string>>({});
   const create = useMutation({
@@ -205,6 +226,7 @@ function CatalogTab() {
     },
     onSuccess: async () => {
       setF({ code: '', nameUz: '', nameRu: '', price: '' });
+      setCreating(false);
       await qc.invalidateQueries({ queryKey: ['services'] });
     },
   });
@@ -214,19 +236,29 @@ function CatalogTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['services'] }),
   });
   return (
-    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+    <div>
       <div className="space-y-3">
-        <ErrorNote error={create.error ?? setPrice.error} />
-        <Input
-          placeholder={c('search')}
-          aria-label={c('search')}
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-          }}
-          className="max-w-sm"
-        />
-        <Card flush>
+        <ErrorNote error={setPrice.error} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Input
+            placeholder={c('search')}
+            aria-label={c('search')}
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+            }}
+            className="max-w-sm"
+          />
+          <Button
+            icon={Plus}
+            onClick={() => {
+              setCreating(true);
+            }}
+          >
+            {t('newService')}
+          </Button>
+        </div>
+        <Card flush className="overflow-x-auto">
           <table className="tbl">
             <thead>
               <tr>
@@ -279,53 +311,61 @@ function CatalogTab() {
           </table>
         </Card>
       </div>
-      <Card title={t('newService')}>
-        <Field label={t('code')}>
-          <Input
-            className="num"
-            value={f.code}
-            onChange={(e) => {
-              setF({ ...f, code: e.target.value });
-            }}
-          />
-        </Field>
-        <Field label="UZ">
-          <Input
-            value={f.nameUz}
-            onChange={(e) => {
-              setF({ ...f, nameUz: e.target.value });
-            }}
-          />
-        </Field>
-        <Field label="RU">
-          <Input
-            value={f.nameRu}
-            onChange={(e) => {
-              setF({ ...f, nameRu: e.target.value });
-            }}
-          />
-        </Field>
-        <Field label={t('price')}>
-          <Input
-            className="num"
-            inputMode="numeric"
-            value={f.price}
-            onChange={(e) => {
-              setF({ ...f, price: e.target.value });
-            }}
-          />
-        </Field>
-        <Button
-          icon={Plus}
-          loading={create.isPending}
-          disabled={!f.code || !f.nameUz}
-          onClick={() => {
-            create.mutate();
+      {creating && (
+        <Modal
+          title={t('newService')}
+          onClose={() => {
+            setCreating(false);
           }}
         >
-          {c('create')}
-        </Button>
-      </Card>
+          <ErrorNote error={create.error} />
+          <Field label={t('code')}>
+            <Input
+              className="num"
+              value={f.code}
+              onChange={(e) => {
+                setF({ ...f, code: e.target.value });
+              }}
+            />
+          </Field>
+          <Field label="UZ">
+            <Input
+              value={f.nameUz}
+              onChange={(e) => {
+                setF({ ...f, nameUz: e.target.value });
+              }}
+            />
+          </Field>
+          <Field label="RU">
+            <Input
+              value={f.nameRu}
+              onChange={(e) => {
+                setF({ ...f, nameRu: e.target.value });
+              }}
+            />
+          </Field>
+          <Field label={t('price')}>
+            <Input
+              className="num"
+              inputMode="numeric"
+              value={f.price}
+              onChange={(e) => {
+                setF({ ...f, price: e.target.value });
+              }}
+            />
+          </Field>
+          <Button
+            icon={Plus}
+            loading={create.isPending}
+            disabled={!f.code || !f.nameUz}
+            onClick={() => {
+              create.mutate();
+            }}
+          >
+            {c('create')}
+          </Button>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -387,7 +427,7 @@ function ScheduleTab() {
       </Field>
       {doctorId && (
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-          <Card flush>
+          <Card flush className="overflow-x-auto">
             <table className="tbl">
               <thead>
                 <tr>
@@ -596,19 +636,27 @@ export default function SettingsPage() {
         : can('settings:manage'),
   );
   const active = allowed.includes(tab) ? tab : allowed[0];
-  if (!active) return <p className="text-ink-2">{c('noAccess')}</p>;
+  if (!active) return <p className="p-6 text-ink-2">{c('noAccess')}</p>;
   return (
-    <section>
-      <PageHeader title={t('title')} />
-      <Tabs
-        tabs={allowed.map((x) => ({ id: x, label: t(`tab.${x}`) }))}
-        value={active}
-        onChange={setTab}
-      />
+    <Workspace
+      list={
+        <>
+          <PaneHead title={t('title')} />
+          <PaneNav
+            items={allowed.map((x) => ({ id: x, label: t(`tab.${x}`) }))}
+            value={active}
+            onChange={setTab}
+          />
+        </>
+      }
+    >
+      <h2 className="text-[22px] font-semibold leading-tight tracking-tight">
+        {t(`tab.${active}`)}
+      </h2>
       {active === 'staff' && <StaffTab />}
       {active === 'catalog' && <CatalogTab />}
       {active === 'schedule' && <ScheduleTab />}
       {active === 'clinic' && <ClinicTab />}
-    </section>
+    </Workspace>
   );
 }

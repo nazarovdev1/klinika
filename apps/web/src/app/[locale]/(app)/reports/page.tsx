@@ -6,10 +6,10 @@ import { Download, FileBarChart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, ErrorNote, Field, Input, Select } from '@/components/ui/form';
-import { EmptyState, PageHeader, Toolbar } from '@/components/ui/page';
+import { Card, ErrorNote, Field, Input } from '@/components/ui/form';
+import { EmptyState, PaneHead, PaneNav, Workspace } from '@/components/ui/page';
 import { api, openBlob } from '@/lib/api';
-import { formatMoney, today } from '@/lib/format';
+import { fmtDate, formatMoney, today } from '@/lib/format';
 
 interface Report {
   columns: string[];
@@ -34,6 +34,7 @@ const monthStart = () => `${today().slice(0, 8)}01`;
 export default function ReportsPage() {
   const t = useTranslations('reports');
   const c = useTranslations('common');
+  const b = useTranslations('billing');
   const [name, setName] = useState<(typeof REPORT_NAMES)[number]>('revenue');
   const [from, setFrom] = useState(monthStart());
   const [to, setTo] = useState(today());
@@ -43,13 +44,55 @@ export default function ReportsPage() {
     queryFn: () => api<Report>(`/reports/${name}?${qs}`),
   });
   const cell = (col: string, v: string | number | null) =>
-    v === null ? '—' : MONEY_COLUMNS.has(col) && typeof v === 'string' ? formatMoney(v) : String(v);
+    v === null
+      ? '—'
+      : col === 'method' && b.has(`m.${String(v)}`)
+        ? b(`m.${String(v)}`)
+        : /^\d{4}-\d{2}-\d{2}$/.test(String(v))
+          ? fmtDate(String(v))
+          : MONEY_COLUMNS.has(col) && typeof v === 'string'
+            ? formatMoney(v)
+            : String(v);
   const numeric = (col: string, v: string | number | null) =>
     MONEY_COLUMNS.has(col) || typeof v === 'number';
 
   return (
-    <section>
-      <PageHeader title={t('title')}>
+    <Workspace
+      list={
+        <>
+          <PaneHead title={t('title')} />
+          <PaneNav
+            items={REPORT_NAMES.map((n) => ({ id: n, label: t(`r.${n}`) }))}
+            value={name}
+            onChange={setName}
+          />
+          <div className="grid grid-cols-2 gap-3 border-t border-line p-4 lg:grid-cols-1">
+            <Field label={c('from')}>
+              <Input
+                className="num"
+                type="date"
+                value={from}
+                onChange={(e) => {
+                  setFrom(e.target.value);
+                }}
+              />
+            </Field>
+            <Field label={c('to')}>
+              <Input
+                className="num"
+                type="date"
+                value={to}
+                onChange={(e) => {
+                  setTo(e.target.value);
+                }}
+              />
+            </Field>
+          </div>
+        </>
+      }
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[22px] font-semibold leading-tight tracking-tight">{t(`r.${name}`)}</h2>
         <Button
           variant="outline"
           icon={Download}
@@ -59,43 +102,7 @@ export default function ReportsPage() {
         >
           {t('exportCsv')}
         </Button>
-      </PageHeader>
-      <Toolbar>
-        <Field label={t('report')} className="w-64">
-          <Select
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value as typeof name);
-            }}
-          >
-            {REPORT_NAMES.map((n) => (
-              <option key={n} value={n}>
-                {t(`r.${n}`)}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label={c('from')} className="w-40">
-          <Input
-            className="num"
-            type="date"
-            value={from}
-            onChange={(e) => {
-              setFrom(e.target.value);
-            }}
-          />
-        </Field>
-        <Field label={c('to')} className="w-40">
-          <Input
-            className="num"
-            type="date"
-            value={to}
-            onChange={(e) => {
-              setTo(e.target.value);
-            }}
-          />
-        </Field>
-      </Toolbar>
+      </div>
       <ErrorNote error={report.error} />
       {report.isPending && <p className="text-[14px] text-ink-2">{c('loading')}</p>}
       {report.data && (
@@ -150,6 +157,6 @@ export default function ReportsPage() {
           )}
         </Card>
       )}
-    </section>
+    </Workspace>
   );
 }

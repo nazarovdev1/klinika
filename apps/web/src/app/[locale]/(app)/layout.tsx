@@ -71,10 +71,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const nav = (
+  const navFor = (rail: boolean) => (
     <nav aria-label="main" className="flex h-full flex-col">
-      <div className="flex h-14 items-center px-4">
-        <Logo />
+      <div className={cn('flex h-14 shrink-0 items-center px-4', rail && 'justify-center px-1')}>
+        <Logo onDark className={rail ? 'gap-1.5 [&>span:last-child]:text-[16px]' : ''} />
       </div>
       <div className="flex-1 overflow-y-auto px-2 pb-2">
         {GROUPS.map((group, gi) => {
@@ -83,7 +83,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           );
           if (items.length === 0) return null;
           return (
-            <ul key={gi} className={cn('space-y-0.5 py-2', gi > 0 && 'border-t border-line')}>
+            <ul key={gi} className={cn('space-y-0.5 py-2', gi > 0 && 'border-t border-white/15')}>
               {items.map(([key, href, Icon]) => {
                 const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
                 return (
@@ -92,17 +92,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                       href={href}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'flex h-9 items-center gap-2.5 rounded-control px-2.5 text-[14px] no-underline transition-colors',
+                        'flex items-center rounded-control no-underline transition-colors',
+                        rail
+                          ? 'flex-col gap-1 px-0.5 py-2 text-center text-[11.5px] leading-tight'
+                          : 'h-9 gap-2.5 px-2.5 text-[14px]',
                         active
-                          ? 'bg-primary-soft font-medium text-primary-hover'
-                          : 'text-ink hover:bg-row-hover hover:text-ink',
+                          ? 'bg-white font-medium text-rail hover:text-rail'
+                          : 'text-rail-ink hover:bg-white/10 hover:text-white',
                       )}
                     >
-                      <Icon
-                        size={18}
-                        aria-hidden
-                        className={active ? 'text-primary' : 'text-ink-2'}
-                      />
+                      <Icon size={rail ? 20 : 18} className="shrink-0" aria-hidden />
                       {t(key)}
                     </Link>
                   </li>
@@ -112,12 +111,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           );
         })}
       </div>
-      <div className="space-y-2 border-t border-line p-3">
-        <div className="min-w-0">
-          <p className="truncate text-[14px] font-medium">{user.fullName}</p>
-          <p className="truncate text-[12px] text-ink-2">{user.role}</p>
+      <div className="space-y-2 border-t border-white/15 p-2 text-rail-ink">
+        <div className={cn('min-w-0', rail && 'text-center')} title={user.fullName}>
+          <p className="truncate text-[13px] font-medium text-white">{user.fullName}</p>
+          <p className="truncate text-[12px]">{user.role}</p>
         </div>
-        <div className="flex items-center justify-between">
+        <div className={cn('flex items-center justify-between', rail && 'flex-col gap-1')}>
           <p className="flex gap-1" aria-label={c('language')}>
             {(['uz', 'ru'] as const).map((l) => (
               <Link
@@ -126,7 +125,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 locale={l}
                 className={cn(
                   'rounded-control px-2 py-0.5 text-[12px] font-medium no-underline',
-                  l === locale ? 'bg-ink text-white' : 'text-ink-2 hover:bg-row-hover',
+                  l === locale
+                    ? 'bg-white text-rail'
+                    : 'text-rail-ink hover:bg-white/10 hover:text-white',
                 )}
               >
                 {l.toUpperCase()}
@@ -135,7 +136,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </p>
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 rounded-control px-2 py-1 text-[13px] text-ink-2 hover:bg-row-hover hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-control px-2 py-1 text-[13px] hover:bg-white/10 hover:text-white"
             onClick={() => {
               void logout().then(() => {
                 router.replace('/login');
@@ -152,8 +153,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen lg:flex">
-      <aside className="sticky top-0 hidden h-screen w-[232px] shrink-0 border-r border-line bg-surface lg:block">
-        {nav}
+      <aside className="sticky top-0 hidden h-screen w-[96px] shrink-0 bg-rail lg:block">
+        {navFor(true)}
       </aside>
 
       <header className="flex h-12 items-center gap-3 border-b border-line bg-surface px-3 lg:hidden">
@@ -171,14 +172,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <Logo />
       </header>
       {menuOpen && (
-        <div className="fixed inset-x-0 bottom-0 top-12 z-30 w-64 border-r border-line bg-surface shadow-[0_8px_24px_rgba(31,42,48,0.12)] lg:hidden">
-          {nav}
+        <div className="fixed inset-x-0 bottom-0 top-12 z-30 w-64 bg-rail shadow-[0_8px_24px_rgba(31,42,48,0.12)] lg:hidden">
+          {navFor(false)}
         </div>
       )}
 
-      <main className="min-w-0 flex-1 px-4 py-5 lg:px-6">
-        <div className="mx-auto max-w-[1480px]">{children}</div>
-      </main>
+      <main className="min-w-0 flex-1">{children}</main>
     </div>
   );
 }

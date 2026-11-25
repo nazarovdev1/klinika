@@ -1,28 +1,31 @@
 @import 'tailwindcss';
 
-/* IBM Plex Sans, self-hosted (Latin, Latin Extended for the Uzbek o‘ g‘ marks, Cyrillic). 400 / 500 / 600 only. */
-@import '@fontsource/ibm-plex-sans/latin-400.css';
-@import '@fontsource/ibm-plex-sans/latin-500.css';
-@import '@fontsource/ibm-plex-sans/latin-600.css';
-@import '@fontsource/ibm-plex-sans/latin-ext-400.css';
-@import '@fontsource/ibm-plex-sans/latin-ext-500.css';
-@import '@fontsource/ibm-plex-sans/latin-ext-600.css';
-@import '@fontsource/ibm-plex-sans/cyrillic-400.css';
-@import '@fontsource/ibm-plex-sans/cyrillic-500.css';
-@import '@fontsource/ibm-plex-sans/cyrillic-600.css';
+/* Onest, self-hosted (Latin, Latin Extended for the Uzbek o‘ g‘ marks, Cyrillic). 400 / 500 / 600 only. */
+@import '@fontsource/onest/latin-400.css';
+@import '@fontsource/onest/latin-500.css';
+@import '@fontsource/onest/latin-600.css';
+@import '@fontsource/onest/latin-ext-400.css';
+@import '@fontsource/onest/latin-ext-500.css';
+@import '@fontsource/onest/latin-ext-600.css';
+@import '@fontsource/onest/cyrillic-400.css';
+@import '@fontsource/onest/cyrillic-500.css';
+@import '@fontsource/onest/cyrillic-600.css';
 
-/* One light, solid-color system. No gradients anywhere. Status colors carry meaning only. */
+/* One light, solid-color system. The only gradient is the fade under the trend line. Status colors carry meaning only. */
 :root {
-  --ink: #1f2a30;
-  --ink-2: #4c6272;
-  --line: #d8dde0;
-  --bg: #f6f8f9;
+  --ink: #131b33;
+  --ink-2: #56607c;
+  --line: #d9dfed;
+  --bg: #eef1f8;
   --surface: #ffffff;
-  --row-hover: #f1f4f5;
+  --row-hover: #f2f4fa;
 
-  --primary: #0b6e69;
-  --primary-hover: #08524e;
-  --primary-soft: #e4f0ef;
+  --primary: #2346dd;
+  --primary-hover: #1b37b4;
+  --primary-soft: #e4eafe;
+
+  --rail: #14245f;
+  --rail-ink: #c9d3fb;
 
   --ok: #1e7b3a;
   --ok-soft: #e7f2ea;
@@ -39,7 +42,7 @@
 }
 
 @theme inline {
-  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-line: var(--line);
@@ -49,6 +52,8 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-soft: var(--primary-soft);
+  --color-rail: var(--rail);
+  --color-rail-ink: var(--rail-ink);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-ok-text: var(--ok-text);
@@ -61,8 +66,8 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-info-text: var(--info-text);
-  --radius-control: 6px;
-  --radius-card: 8px;
+  --radius-control: 10px;
+  --radius-card: 12px;
 }
 
 html {
@@ -181,7 +186,7 @@ button:disabled {
     transition: border-color 120ms ease-out;
   }
   .field-control:hover:not(:disabled) {
-    border-color: #b7c0c5;
+    border-color: #b4bdd6;
   }
   .field-control:disabled {
     background: var(--bg);
@@ -195,13 +200,42 @@ button:disabled {
     resize: vertical;
   }
   .field-control::placeholder {
-    color: #6b7c88;
+    color: #67718c;
   }
 }
 
 select.field-control {
   appearance: none;
   background: var(--surface)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234c6272' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2356607c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
     no-repeat right 10px center;
+}
+
+/* Invoice rendered as a till receipt: the torn lower edge marks it as the paper the patient takes. */
+.receipt {
+  background: var(--surface);
+  padding: 26px 24px 38px;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 10px) no-repeat,
+    conic-gradient(from -45deg at 50% 100%, #000 0 90deg, #0000 0) bottom / 20px 10px repeat-x;
+}
+.receipt hr {
+  border: 0;
+  border-top: 2px dashed var(--line);
+  margin-block: 14px;
+}
+.keypad {
+  display: grid;
+  place-items: center;
+  height: 52px;
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 20px;
+  font-weight: 600;
+}
+.keypad:hover {
+  background: var(--primary-soft);
+}
+.keypad:active {
+  transform: scale(0.97);
 }

@@ -13,6 +13,7 @@ import type {
 import { recordAudit } from '../../core/audit.js';
 import type { AuthContext } from '../../core/context.js';
 import { AppError } from '../../core/errors.js';
+import { patientNames } from '../../core/patient-names.js';
 import { searchIcd10 } from '../../core/reference.js';
 import {
   assertAttending,
@@ -161,8 +162,12 @@ export function encountersService(db: Db) {
         ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
       });
       const page = rows.slice(0, q.limit);
+      const names = await patientNames(
+        tenant(ctx),
+        page.map((r) => r.patientId),
+      );
       return {
-        items: page.map(dto),
+        items: page.map((r) => ({ ...dto(r), patientName: names.get(r.patientId) ?? null })),
         nextCursor: rows.length > q.limit ? (page[page.length - 1]?.id ?? null) : null,
       };
     },

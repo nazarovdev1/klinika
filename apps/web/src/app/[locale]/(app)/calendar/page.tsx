@@ -19,8 +19,8 @@ import {
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, ErrorNote, Field, Input, Select, Status, type Tone } from '@/components/ui/form';
-import { PageHeader, Split, Toolbar } from '@/components/ui/page';
+import { ErrorNote, Field, Input, Select, Status, type Tone } from '@/components/ui/form';
+import { Workspace } from '@/components/ui/page';
 import { api, ApiError } from '@/lib/api';
 import { fmtTime, today } from '@/lib/format';
 import { PatientPicker, useBranches, useDoctors, useServices, type DoctorRow } from '@/lib/queries';
@@ -190,12 +190,13 @@ export default function CalendarPage() {
 
   const formOpen = booking || Boolean(rescheduling);
   const panel = formOpen ? (
-    <Card
-      title={rescheduling ? `${t('reschedule')}: ${rescheduling.patientName}` : t('newAppointment')}
-      actions={
+    <div className="space-y-4">
+      <header className="flex items-start justify-between gap-2">
+        <h2 className="text-[18px] font-semibold leading-snug">
+          {rescheduling ? `${t('reschedule')}: ${rescheduling.patientName}` : t('newAppointment')}
+        </h2>
         <Button variant="ghost" size="sm" icon={X} aria-label={c('close')} onClick={resetForm} />
-      }
-    >
+      </header>
       {!rescheduling && (
         <Field label={c('patient')}>
           <PatientPicker value={patient} onChange={setPatient} />
@@ -276,11 +277,11 @@ export default function CalendarPage() {
           {c('cancel')}
         </Button>
       </div>
-    </Card>
+    </div>
   ) : current ? (
-    <Card
-      title={current.patientName}
-      actions={
+    <div className="space-y-4">
+      <header className="flex items-start justify-between gap-2">
+        <h2 className="text-[18px] font-semibold leading-snug">{current.patientName}</h2>
         <Button
           variant="ghost"
           size="sm"
@@ -290,8 +291,7 @@ export default function CalendarPage() {
             setSelected(null);
           }}
         />
-      }
-    >
+      </header>
       <dl className="grid grid-cols-[90px_1fr] gap-y-1.5 text-[14px]">
         <dt className="text-ink-2">{c('time')}</dt>
         <dd className="num">
@@ -347,27 +347,16 @@ export default function CalendarPage() {
         </div>
       )}
       <ErrorNote error={setStatus.error} />
-    </Card>
+    </div>
   ) : null;
 
   return (
-    <section>
-      <PageHeader title={t('title')}>
-        {canWrite && (
-          <Button
-            icon={CalendarPlus}
-            onClick={() => {
-              resetForm();
-              setBooking(true);
-              setSelected(null);
-            }}
-          >
-            {t('newAppointment')}
-          </Button>
-        )}
-      </PageHeader>
-      <Toolbar>
-        <div className="flex items-end gap-1">
+    <Workspace side={panel}>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="mr-auto text-[24px] font-semibold leading-tight tracking-tight">
+          {t('title')}
+        </h1>
+        <div className="flex items-center gap-1">
           <Button
             variant="outline"
             icon={ChevronLeft}
@@ -377,16 +366,16 @@ export default function CalendarPage() {
               setSlot(null);
             }}
           />
-          <Field label={c('date')} className="w-44">
-            <Input
-              type="date"
-              value={day}
-              onChange={(e) => {
-                setDay(e.target.value);
-                setSlot(null);
-              }}
-            />
-          </Field>
+          <Input
+            aria-label={c('date')}
+            className="num !w-40"
+            type="date"
+            value={day}
+            onChange={(e) => {
+              setDay(e.target.value);
+              setSlot(null);
+            }}
+          />
           <Button
             variant="outline"
             icon={ChevronRight}
@@ -405,133 +394,139 @@ export default function CalendarPage() {
             {t('todayBtn')}
           </Button>
         </div>
-        <Field label={c('branch')} className="w-56">
-          <Select
-            value={branchId}
-            onChange={(e) => {
-              setBranchId(e.target.value);
-            }}
-          >
-            {branches.data?.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </Toolbar>
-      <ErrorNote error={appts.error} />
-
-      <Split open={Boolean(panel)} panel={panel}>
-        <div
-          className="overflow-auto rounded-card border border-line bg-surface"
-          style={{ maxHeight: 'calc(100vh - 200px)' }}
+        <Select
+          aria-label={c('branch')}
+          className="!w-48"
+          value={branchId}
+          onChange={(e) => {
+            setBranchId(e.target.value);
+          }}
         >
-          <div
-            className="grid min-w-max"
-            style={{
-              gridTemplateColumns: `56px repeat(${String(Math.max(cols.length, 1))}, minmax(168px, 1fr))`,
+          {branches.data?.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </Select>
+        {canWrite && (
+          <Button
+            icon={CalendarPlus}
+            onClick={() => {
+              resetForm();
+              setBooking(true);
+              setSelected(null);
             }}
           >
-            <div className="sticky left-0 top-0 z-20 border-b border-line bg-surface" />
-            {cols.map((d) => (
-              <div
-                key={d.id}
-                className="sticky top-0 z-10 border-b border-l border-line bg-surface px-3 py-2"
-              >
-                <p className="flex items-center gap-2 text-[13px] font-medium">
-                  <span
-                    aria-hidden
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ background: tag(d.id) }}
-                  />
-                  <span className="truncate">{d.fullName}</span>
-                </p>
-                <p className="truncate pl-[18px] text-[12px] text-ink-2">
-                  {d.specialty ?? ''}
-                  {d.cabinet ? ` · ${d.cabinet}` : ''}
-                </p>
-              </div>
-            ))}
-
-            <div className="sticky left-0 z-10 bg-surface" style={{ height: HOURS.length * ROW }}>
-              {HOURS.map((i) => (
-                <div
-                  key={i}
-                  className="num border-b border-line pr-2 pt-0.5 text-right text-[12px] text-ink-2"
-                  style={{ height: ROW }}
-                >
-                  {i % 2 === 0 ? `${String(DAY_START + i / 2).padStart(2, '0')}:00` : ''}
-                </div>
-              ))}
+            {t('newAppointment')}
+          </Button>
+        )}
+      </div>
+      <ErrorNote error={appts.error} />
+      <div className="min-h-[420px] flex-1 !shrink overflow-auto rounded-card bg-surface">
+        <div
+          className="grid min-w-max"
+          style={{
+            gridTemplateColumns: `56px repeat(${String(Math.max(cols.length, 1))}, minmax(168px, 1fr))`,
+          }}
+        >
+          <div className="sticky left-0 top-0 z-20 border-b border-line bg-surface" />
+          {cols.map((d) => (
+            <div
+              key={d.id}
+              className="sticky top-0 z-10 border-b border-l border-line bg-surface px-3 py-2"
+            >
+              <p className="flex items-center gap-2 text-[13px] font-medium">
+                <span
+                  aria-hidden
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ background: tag(d.id) }}
+                />
+                <span className="truncate">{d.fullName}</span>
+              </p>
+              <p className="truncate pl-[18px] text-[12px] text-ink-2">
+                {d.specialty ?? ''}
+                {d.cabinet ? ` · ${d.cabinet}` : ''}
+              </p>
             </div>
+          ))}
 
-            {cols.map((d) => (
+          <div className="sticky left-0 z-10 bg-surface" style={{ height: HOURS.length * ROW }}>
+            {HOURS.map((i) => (
               <div
-                key={d.id}
-                className="relative border-l border-line"
-                style={{ height: HOURS.length * ROW }}
-                onClick={(e) => {
-                  if (e.target !== e.currentTarget || !canWrite) return;
-                  resetForm();
-                  setBooking(true);
-                  setSelected(null);
-                  setDoctorId(d.id);
-                }}
+                key={i}
+                className="num border-b border-line pr-2 pt-0.5 text-right text-[12px] text-ink-2"
+                style={{ height: ROW }}
               >
-                {HOURS.map((i) => (
-                  <div
-                    key={i}
-                    className={`pointer-events-none border-b ${i % 2 === 0 ? 'border-line' : 'border-dashed border-line/70'}`}
-                    style={{ height: ROW }}
-                  />
-                ))}
-                {appts.data?.items
-                  .filter((a) => a.doctorId === d.id)
-                  .map((a) => {
-                    const top = ((minutesOfDay(a.startsAt) - DAY_START * 60) / 30) * ROW;
-                    const h = Math.max(
-                      ((minutesOfDay(a.endsAt) - minutesOfDay(a.startsAt)) / 30) * ROW,
-                      28,
-                    );
-                    const st = STATUS[a.status];
-                    const off = a.status === 'CANCELLED' || a.status === 'NO_SHOW';
-                    const Icon = st?.icon ?? Clock;
-                    return (
-                      <button
-                        key={a.id}
-                        type="button"
-                        aria-pressed={selected === a.id}
-                        aria-label={`${fmtTime(a.startsAt)} ${a.patientName} — ${t(`status.${a.status}`)}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          resetForm();
-                          setSelected(a.id);
-                        }}
-                        className="absolute inset-x-1 overflow-hidden rounded-control border px-2 py-1 text-left text-[12px] leading-tight transition-colors hover:brightness-95 aria-pressed:outline aria-pressed:outline-2 aria-pressed:outline-primary"
-                        style={{
-                          top: top + 1,
-                          height: h - 2,
-                          borderColor: tag(d.id),
-                          background: `color-mix(in srgb, ${tag(d.id)} 14%, white)`,
-                          opacity: off ? 0.6 : 1,
-                        }}
-                      >
-                        <span className="num flex items-center gap-1 font-medium">
-                          <Icon size={12} aria-hidden />
-                          {fmtTime(a.startsAt)}
-                        </span>
-                        <span className={`block truncate ${off ? 'line-through' : ''}`}>
-                          {a.patientName}
-                        </span>
-                      </button>
-                    );
-                  })}
+                {i % 2 === 0 ? `${String(DAY_START + i / 2).padStart(2, '0')}:00` : ''}
               </div>
             ))}
           </div>
+
+          {cols.map((d) => (
+            <div
+              key={d.id}
+              className="relative border-l border-line"
+              style={{ height: HOURS.length * ROW }}
+              onClick={(e) => {
+                if (e.target !== e.currentTarget || !canWrite) return;
+                resetForm();
+                setBooking(true);
+                setSelected(null);
+                setDoctorId(d.id);
+              }}
+            >
+              {HOURS.map((i) => (
+                <div
+                  key={i}
+                  className={`pointer-events-none border-b ${i % 2 === 0 ? 'border-line' : 'border-dashed border-line/70'}`}
+                  style={{ height: ROW }}
+                />
+              ))}
+              {appts.data?.items
+                .filter((a) => a.doctorId === d.id)
+                .map((a) => {
+                  const top = ((minutesOfDay(a.startsAt) - DAY_START * 60) / 30) * ROW;
+                  const h = Math.max(
+                    ((minutesOfDay(a.endsAt) - minutesOfDay(a.startsAt)) / 30) * ROW,
+                    28,
+                  );
+                  const st = STATUS[a.status];
+                  const off = a.status === 'CANCELLED' || a.status === 'NO_SHOW';
+                  const Icon = st?.icon ?? Clock;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      aria-pressed={selected === a.id}
+                      aria-label={`${fmtTime(a.startsAt)} ${a.patientName} — ${t(`status.${a.status}`)}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetForm();
+                        setSelected(a.id);
+                      }}
+                      className="absolute inset-x-1 overflow-hidden rounded-control border px-2 py-1 text-left text-[12px] leading-tight transition-colors hover:brightness-95 aria-pressed:outline aria-pressed:outline-2 aria-pressed:outline-primary"
+                      style={{
+                        top: top + 1,
+                        height: h - 2,
+                        borderColor: tag(d.id),
+                        background: `color-mix(in srgb, ${tag(d.id)} 14%, white)`,
+                        opacity: off ? 0.6 : 1,
+                      }}
+                    >
+                      <span className="num flex items-center gap-1 font-medium">
+                        <Icon size={12} aria-hidden />
+                        {fmtTime(a.startsAt)}
+                      </span>
+                      <span className={`block truncate ${off ? 'line-through' : ''}`}>
+                        {a.patientName}
+                      </span>
+                    </button>
+                  );
+                })}
+            </div>
+          ))}
         </div>
-      </Split>
-    </section>
+      </div>
+    </Workspace>
   );
 }

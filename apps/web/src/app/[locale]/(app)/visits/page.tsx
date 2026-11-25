@@ -5,7 +5,7 @@ import { CheckCheck, ClipboardList, FilePenLine, Play } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, ErrorNote, Status } from '@/components/ui/form';
-import { EmptyState, PageHeader } from '@/components/ui/page';
+import { EmptyState, PageHeader, PaneHead, PaneList, Workspace } from '@/components/ui/page';
 import { Link, useRouter } from '@/i18n/navigation';
 import { api } from '@/lib/api';
 import { fmtDateTime, fmtTime, today } from '@/lib/format';
@@ -22,6 +22,7 @@ interface Appt {
 interface Enc {
   id: string;
   patientId: string;
+  patientName: string | null;
   status: 'OPEN' | 'SIGNED' | 'CANCELLED';
   startedAt: string;
   signedAt: string | null;
@@ -30,6 +31,7 @@ interface Enc {
 export default function VisitsPage() {
   const t = useTranslations('visits');
   const c = useTranslations('common');
+  const cal = useTranslations('calendar');
   const router = useRouter();
   const { can, user } = useSession();
   const isDoctor = can('encounters:write');
@@ -64,55 +66,85 @@ export default function VisitsPage() {
     todayAppts.data?.items.filter((a) => !['CANCELLED', 'NO_SHOW'].includes(a.status)) ?? [];
 
   return (
-    <section className="space-y-4">
-      <PageHeader title={t('title')} sub={isDoctor ? user?.fullName : undefined} />
-      <ErrorNote error={todayAppts.error ?? recent.error ?? start.error} />
-
-      {isDoctor && (
-        <Card title={t('today')} flush>
-          <ul className="divide-y divide-line">
-            {list.map((a) => (
-              <li key={a.id} className="flex items-center gap-4 px-4 py-2.5">
-                <span className="num w-14 text-[15px] font-medium">{fmtTime(a.startsAt)}</span>
-                <span className="flex-1 text-[15px]">{a.patientName}</span>
-                {a.status === 'COMPLETED' ? (
-                  <Status tone="ok" icon={CheckCheck}>
-                    {a.status}
-                  </Status>
-                ) : (
-                  <>
-                    <Status tone={a.status === 'ARRIVED' ? 'warn' : 'info'}>{a.status}</Status>
-                    <Button
-                      size="sm"
-                      icon={Play}
-                      disabled={start.isPending}
-                      onClick={() => {
-                        start.mutate(a);
-                      }}
+    <Workspace
+      list={
+        isDoctor && (
+          <>
+            <PaneHead title={t('today')}>
+              <p className="text-[13px] text-ink-2">{user?.fullName}</p>
+            </PaneHead>
+            <PaneList>
+              {list.map((a) => (
+                <li key={a.id} className="space-y-2 border-t border-line px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="font-medium">{a.patientName}</span>
+                    <span className="num font-semibold">{fmtTime(a.startsAt)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <Status
+                      tone={
+                        a.status === 'COMPLETED' ? 'ok' : a.status === 'ARRIVED' ? 'warn' : 'info'
+                      }
                     >
-                      {t('start')}
-                    </Button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-          {list.length === 0 && <EmptyState icon={ClipboardList}>{c('empty')}</EmptyState>}
-        </Card>
-      )}
-
-      <Card title={t('recent')} flush>
+                      {cal(`status.${a.status}`)}
+                    </Status>
+                    {a.status !== 'COMPLETED' && (
+                      <Button
+                        size="sm"
+                        variant={a.status === 'ARRIVED' ? 'default' : 'outline'}
+                        icon={Play}
+                        disabled={start.isPending}
+                        onClick={() => {
+                          start.mutate(a);
+                        }}
+                      >
+                        {t('start')}
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              ))}
+              {todayAppts.isSuccess && list.length === 0 && (
+                <li>
+                  <EmptyState icon={ClipboardList}>{c('empty')}</EmptyState>
+                </li>
+              )}
+            </PaneList>
+          </>
+        )
+      }
+    >
+      <PageHeader title={t('title')} sub={t('recent')} />
+      <ErrorNote error={todayAppts.error ?? recent.error ?? start.error} />
+      <Card flush className="overflow-x-auto">
         <table className="tbl">
           <thead>
             <tr>
+              <th>{c('patient')}</th>
               <th>{c('date')}</th>
               <th>{c('status')}</th>
-              <th className="r">{c('actions')}</th>
             </tr>
           </thead>
           <tbody>
             {recent.data?.items.map((e) => (
-              <tr key={e.id}>
+              <tr
+                key={e.id}
+                data-clickable="true"
+                onClick={() => {
+                  router.push(`/visits/${e.id}`);
+                }}
+              >
+                <td>
+                  <Link
+                    className="font-medium text-ink no-underline hover:text-primary"
+                    href={`/visits/${e.id}`}
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                    }}
+                  >
+                    {e.patientName ?? c('open')}
+                  </Link>
+                </td>
                 <td className="num">{fmtDateTime(e.signedAt ?? e.startedAt)}</td>
                 <td>
                   <Status
@@ -122,9 +154,6 @@ export default function VisitsPage() {
                     {t(`status.${e.status}`)}
                   </Status>
                 </td>
-                <td className="r">
-                  <Link href={`/visits/${e.id}`}>{c('open')}</Link>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -133,6 +162,6 @@ export default function VisitsPage() {
           <EmptyState icon={ClipboardList}>{c('empty')}</EmptyState>
         )}
       </Card>
-    </section>
+    </Workspace>
   );
 }

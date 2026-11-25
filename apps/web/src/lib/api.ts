@@ -1,7 +1,9 @@
 import type { Problem, TokenResponse } from '@shifo/contracts';
 
 let accessToken: string | null = null;
-let refreshing: Promise<boolean> | null = null;
+let refreshing: Promise<TokenResponse | null> | null = null;
+
+export const getAccessToken = (): string | null => accessToken;
 
 export const setAccessToken = (t: string | null): void => {
   accessToken = t;
@@ -16,18 +18,23 @@ export class ApiError extends Error {
   }
 }
 
-async function refresh(): Promise<boolean> {
+export async function refreshSession(): Promise<TokenResponse | null> {
   refreshing ??= fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
     .then(async (res) => {
-      if (!res.ok) return false;
-      accessToken = ((await res.json()) as TokenResponse).accessToken;
-      return true;
+      if (!res.ok) return null;
+      const data = (await res.json()) as TokenResponse;
+      accessToken = data.accessToken;
+      return data;
     })
-    .catch(() => false)
+    .catch(() => null)
     .finally(() => {
       refreshing = null;
     });
   return refreshing;
+}
+
+async function refresh(): Promise<boolean> {
+  return (await refreshSession()) !== null;
 }
 
 /** Thin typed fetch: JSON in/out, bearer token, 401 -> refresh -> retry once. */

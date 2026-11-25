@@ -1,8 +1,16 @@
 'use client';
 
-import type { AuthUser, TokenResponse } from '@shifo/contracts';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { api, setAccessToken } from '@/lib/api';
+import type { AuthUser } from '@shifo/contracts';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { api, getAccessToken, refreshSession, setAccessToken } from '@/lib/api';
 
 interface Session {
   user: AuthUser | null;
@@ -14,28 +22,36 @@ interface Session {
 }
 
 const Ctx = createContext<Session | null>(null);
+let cachedUser: AuthUser | null = null;
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUserState] = useState<AuthUser | null>(() =>
+    getAccessToken() ? cachedUser : null,
+  );
+  const [loading, setLoading] = useState(() => !(getAccessToken() && cachedUser));
+
+  const setUser = useCallback((u: AuthUser | null) => {
+    cachedUser = u;
+    setUserState(u);
+  }, []);
 
   // The access token lives in memory only; on reload the httpOnly refresh cookie restores the session.
+  // Deduplicated via refreshSession() so StrictMode double-effects do not trigger refresh-token reuse.
   useEffect(() => {
+    if (getAccessToken() && cachedUser) {
+      setUserState(cachedUser);
+      setLoading(false);
+      return;
+    }
     let alive = true;
-    void fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
-      .then(async (res) => {
-        if (!res.ok) return null;
-        const data = (await res.json()) as TokenResponse;
-        setAccessToken(data.accessToken);
-        return data.user;
-      })
-      .catch(() => null)
-      .then((u) => {
-        if (alive) {
-          setUser(u);
-          setLoading(false);
-        }
-      });
+    void refreshSession().then((data) => {
+      const u = data?.user ?? null;
+      cachedUser = u;
+      if (alive) {
+        setUserState(u);
+        setLoading(false);
+      }
+    });
     return () => {
       alive = false;
     };
@@ -50,10 +66,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       logout: async () => {
         await api('/auth/logout', { method: 'POST' }).catch(() => undefined);
         setAccessToken(null);
-        setUser(null);
+        cachedUser = null;
+        setUserState(null);
       },
     }),
-    [user, loading],
+    [user, loading, setUser],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

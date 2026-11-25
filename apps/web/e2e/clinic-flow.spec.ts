@@ -51,7 +51,7 @@ test('registrar registers a patient, books today and marks arrival (queue ticket
   await page.getByLabel('Telefon').last().fill('+998901234567');
   await page.getByRole('button', { name: 'Yaratish' }).click();
   await page.getByPlaceholder(/Ism, telefon/).fill(LAST);
-  await expect(page.getByRole('cell', { name: new RegExp(LAST) })).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: LAST })).toBeVisible();
 
   await page.getByRole('link', { name: 'Kalendar' }).click();
   await page.getByRole('button', { name: 'Yangi qabul' }).click();
@@ -77,9 +77,9 @@ test('registrar registers a patient, books today and marks arrival (queue ticket
   await block.click();
   await page.getByRole('button', { name: 'Keldi' }).click();
   await page.getByRole('link', { name: 'Navbat', exact: true }).click();
-  await expect(page.getByRole('row', { name: new RegExp(LAST) })).toBeVisible();
+  await expect(page.getByRole('listitem').filter({ hasText: LAST })).toBeVisible();
   await expect(
-    page.getByRole('row', { name: new RegExp(LAST) }).getByText('Kutmoqda'),
+    page.getByRole('listitem').filter({ hasText: LAST }).getByText('Kutmoqda'),
   ).toBeVisible();
 });
 
@@ -120,7 +120,8 @@ test('cashier opens a shift, invoices the patient and takes a cash payment', asy
   await page.getByRole('button', { name: 'Smenani ochish' }).click();
   await expect(page.getByRole('button', { name: 'Smenani yopish' })).toBeVisible();
 
-  const card = section(page, 'Yangi hisob-faktura');
+  await page.getByRole('button', { name: 'Yangi', exact: true }).click();
+  const card = page.getByRole('dialog', { name: 'Yangi hisob-faktura' });
   await card.getByLabel('Bemor').fill(LAST);
   await card
     .getByRole('button', { name: new RegExp(LAST) })
@@ -132,9 +133,9 @@ test('cashier opens a shift, invoices the patient and takes a cash payment', asy
 
   await page.getByRole('button', { name: 'Hisob-faktura chiqarish' }).click();
   await expect(page.getByRole('button', { name: 'To‘lov qabul qilish' })).toBeVisible();
-  await page.getByPlaceholder(/\d/).first().fill('50000');
+  await page.getByLabel('Summa', { exact: true }).fill('50000');
   await page.getByRole('button', { name: 'To‘lov qabul qilish' }).click();
-  await expect(page.getByRole('cell').getByText('To‘langan').first()).toBeVisible();
+  await expect(page.getByText('To‘liq to‘langan')).toBeVisible();
 });
 
 test('owner: language switch, reports and integration; cashier lacks reports', async ({

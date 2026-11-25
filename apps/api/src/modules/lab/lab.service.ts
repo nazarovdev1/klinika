@@ -9,6 +9,7 @@ import type { z } from 'zod';
 import { recordAudit } from '../../core/audit.js';
 import type { AuthContext } from '../../core/context.js';
 import { AppError } from '../../core/errors.js';
+import { patientNames } from '../../core/patient-names.js';
 import { todayIn } from '../../core/time.js';
 import { flagFor, parseNumeric } from './flags.js';
 
@@ -149,11 +150,13 @@ export function labService(db: Db) {
       await t.$transaction((tx) =>
         recordAudit(tx, ctx, { action: 'lab.viewed', entityType: 'LabOrder', entityId: id }),
       );
-      return orderDto(order);
+      const names = await patientNames(tenant(ctx), [order.patientId]);
+      return { ...orderDto(order), patientName: names.get(order.patientId) ?? null };
     },
 
     async listOrders(ctx: AuthContext, q: z.infer<typeof labOrderListSchema>) {
-      const rows = await tenant(ctx).labOrder.findMany({
+      const t = tenant(ctx);
+      const rows = await t.labOrder.findMany({
         where: {
           ...(q.patientId && { patientId: q.patientId }),
           ...(q.status && { status: q.status }),
@@ -163,8 +166,12 @@ export function labService(db: Db) {
         ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
       });
       const page = rows.slice(0, q.limit);
+      const names = await patientNames(
+        t,
+        page.map((r) => r.patientId),
+      );
       return {
-        items: page.map((r) => orderDto(r)),
+        items: page.map((r) => ({ ...orderDto(r), patientName: names.get(r.patientId) ?? null })),
         nextCursor: rows.length > q.limit ? (page[page.length - 1]?.id ?? null) : null,
       };
     },

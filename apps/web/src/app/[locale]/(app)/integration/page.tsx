@@ -5,8 +5,8 @@ import { CheckCircle2, PlugZap, RotateCw, Save, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, ErrorNote, Field, Input, Select, Status, type Tone } from '@/components/ui/form';
-import { EmptyState, KpiStrip, PageHeader, Toolbar } from '@/components/ui/page';
+import { Card, ErrorNote, Field, Input, Status, type Tone } from '@/components/ui/form';
+import { EmptyState, KpiStrip, PageHeader, Pills, Workspace } from '@/components/ui/page';
 import { api } from '@/lib/api';
 
 interface DhpStatus {
@@ -65,7 +65,42 @@ export default function IntegrationPage() {
 
   const s = status.data;
   return (
-    <section>
+    <Workspace
+      side={
+        s && (
+          <>
+            <h2 className="text-[17px] font-semibold">{t('mode')}</h2>
+            <p className="num text-[15px] font-medium">{s.mode}</p>
+            <form
+              className="flex flex-col gap-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                save.mutate(org ?? s.dhpOrganizationId ?? '');
+              }}
+            >
+              <Field label={t('orgId')}>
+                <Input
+                  className="num"
+                  value={org ?? s.dhpOrganizationId ?? ''}
+                  onChange={(e) => {
+                    setOrg(e.target.value);
+                  }}
+                />
+              </Field>
+              <Button type="submit" icon={Save} loading={save.isPending}>
+                {t('save')}
+              </Button>
+            </form>
+            {save.isSuccess && (
+              <p role="status" className="flex items-center gap-1.5 text-[14px] text-ok-text">
+                <CheckCircle2 size={16} aria-hidden />
+                {t('saved')}
+              </p>
+            )}
+          </>
+        )
+      }
+    >
       <PageHeader title={t('title')}>
         {s && (
           <Status tone={s.reachable ? 'ok' : 'danger'} icon={s.reachable ? CheckCircle2 : XCircle}>
@@ -73,64 +108,23 @@ export default function IntegrationPage() {
           </Status>
         )}
       </PageHeader>
-      {(status.error || records.error) && <ErrorNote error={new Error(t('loadError'))} />}
-
+      {(status.error ?? records.error) && <ErrorNote error={new Error(t('loadError'))} />}
       {s && (
-        <>
-          <KpiStrip items={STATUSES.map((k) => ({ label: k, value: s.counts[k] ?? 0 }))} />
-          <div className="mb-4 grid gap-4 lg:grid-cols-2">
-            <Card title={t('mode')}>
-              <p className="num text-[15px] font-medium">{s.mode}</p>
-              <form
-                className="flex items-end gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  save.mutate(org ?? s.dhpOrganizationId ?? '');
-                }}
-              >
-                <Field label={t('orgId')} className="flex-1">
-                  <Input
-                    className="num"
-                    value={org ?? s.dhpOrganizationId ?? ''}
-                    onChange={(e) => {
-                      setOrg(e.target.value);
-                    }}
-                  />
-                </Field>
-                <Button type="submit" icon={Save} loading={save.isPending}>
-                  {t('save')}
-                </Button>
-              </form>
-              {save.isSuccess && (
-                <p role="status" className="flex items-center gap-1.5 text-[14px] text-ok-text">
-                  <CheckCircle2 size={16} aria-hidden />
-                  {t('saved')}
-                </p>
-              )}
-            </Card>
-          </div>
-        </>
+        <KpiStrip items={STATUSES.map((k) => ({ label: t(`s.${k}`), value: s.counts[k] ?? 0 }))} />
       )}
-
-      <h2 className="mb-2 text-[16px] font-semibold">{t('records')}</h2>
-      <Toolbar>
-        <Field label={t('status')} className="w-48">
-          <Select
-            value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value);
-            }}
-          >
-            <option value="">{t('all')}</option>
-            {STATUSES.map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </Toolbar>
-      <Card flush>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[17px] font-semibold">{t('records')}</h2>
+        <Pills
+          label={t('status')}
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { id: '', label: t('all') },
+            ...STATUSES.map((k) => ({ id: k, label: t(`s.${k}`) })),
+          ]}
+        />
+      </div>
+      <Card flush className="overflow-x-auto">
         <table className="tbl">
           <thead>
             <tr>
@@ -148,7 +142,7 @@ export default function IntegrationPage() {
                   {r.entityType} <span className="num text-ink-2">{r.entityId.slice(0, 8)}</span>
                 </td>
                 <td>
-                  <Status tone={TONE[r.status]}>{r.status}</Status>
+                  <Status tone={TONE[r.status]}>{t(`s.${r.status}`)}</Status>
                 </td>
                 <td className="r num">{r.attempts}</td>
                 <td className="max-w-xs truncate text-ink-2">{r.lastError ?? '—'}</td>
@@ -172,6 +166,6 @@ export default function IntegrationPage() {
         </table>
         {records.data?.items.length === 0 && <EmptyState icon={PlugZap}>{t('empty')}</EmptyState>}
       </Card>
-    </section>
+    </Workspace>
   );
 }

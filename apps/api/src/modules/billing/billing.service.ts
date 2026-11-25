@@ -12,6 +12,7 @@ import type { z } from 'zod';
 import { recordAudit } from '../../core/audit.js';
 import type { AuthContext } from '../../core/context.js';
 import { AppError } from '../../core/errors.js';
+import { patientNames } from '../../core/patient-names.js';
 import { expectedCash, invoiceTotals, MoneyError, statusFor, type LineAmounts } from './money.js';
 
 type Tx = Parameters<Parameters<TenantClient['$transaction']>[0]>[0];
@@ -387,22 +388,59 @@ export function billingService(db: Db) {
         },
       });
       if (!inv) throw new AppError(404, 'NOT_FOUND', 'Invoice not found');
-      return invoiceDto(inv);
+      const names = await patientNames(tenant(ctx), [inv.patientId]);
+      return { ...invoiceDto(inv), patientName: names.get(inv.patientId) ?? null };
     },
 
     async listInvoices(ctx: AuthContext, q: z.infer<typeof invoiceListSchema>) {
-      const rows = await tenant(ctx).invoice.findMany({
+      const t = tenant(ctx);
+      const tokens = q.q?.split(/\s+/).filter(Boolean) ?? [];
+      const matched =
+        tokens.length > 0
+          ? await t.patient.findMany({
+              where: {
+                AND: tokens.map((w) => ({
+                  OR: [
+                    { lastName: { startsWith: w, mode: 'insensitive' as const } },
+                    { firstName: { startsWith: w, mode: 'insensitive' as const } },
+                    { middleName: { startsWith: w, mode: 'insensitive' as const } },
+                  ],
+                })),
+              },
+              select: { id: true },
+              take: 500,
+            })
+          : [];
+      const rows = await t.invoice.findMany({
         where: {
           ...(q.patientId && { patientId: q.patientId }),
-          ...(q.status && { status: q.status }),
+          AND: [
+            q.status ? { status: q.status } : {},
+            q.due ? { status: { in: ['ISSUED' as const, 'PARTIAL' as const] } } : {},
+            q.q
+              ? {
+                  OR: [
+                    { number: { contains: q.q, mode: 'insensitive' as const } },
+                    { patientId: { in: matched.map((p) => p.id) } },
+                  ],
+                }
+              : {},
+          ],
         },
         orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
         take: q.limit + 1,
         ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
       });
       const page = rows.slice(0, q.limit);
+      const names = await patientNames(
+        t,
+        page.map((r) => r.patientId),
+      );
       return {
-        items: page.map((r) => invoiceDto(r)),
+        items: page.map((r) => ({
+          ...invoiceDto(r),
+          patientName: names.get(r.patientId) ?? null,
+        })),
         nextCursor: rows.length > q.limit ? (page[page.length - 1]?.id ?? null) : null,
       };
     },
