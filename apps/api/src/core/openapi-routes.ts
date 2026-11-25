@@ -241,6 +241,13 @@ const OPS: Op[] = [
   // scheduling
   {
     m: 'get',
+    path: '/doctors',
+    tag: 'Scheduling',
+    summary: 'Doctor directory',
+    perm: 'scheduling:read',
+  },
+  {
+    m: 'get',
     path: '/doctors/{id}/schedules',
     tag: 'Scheduling',
     summary: 'Weekly schedule',

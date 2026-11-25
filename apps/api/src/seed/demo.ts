@@ -280,7 +280,7 @@ export async function seedDemo(
     let cashInDay = 0n;
     for (const doc of doctors) {
       const booked = new Set<number>();
-      const n = isPast ? 6 + randomInt(5) : 2 + randomInt(4);
+      const n = Math.min(slots, isPast ? 6 + randomInt(5) : 2 + randomInt(4));
       for (let k = 0; k < n; k++) {
         let slot = randomInt(slots);
         while (booked.has(slot)) slot = (slot + 1) % slots;

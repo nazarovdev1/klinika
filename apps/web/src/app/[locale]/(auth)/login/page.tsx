@@ -6,10 +6,12 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/i18n/navigation';
 import { ApiError, login } from '@/lib/api';
+import { useSession } from '@/lib/session';
 
 export default function LoginPage() {
   const t = useTranslations('login');
   const router = useRouter();
+  const { setUser } = useSession();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -27,8 +29,9 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(parsed.data.login, parsed.data.password);
-      router.push('/patients');
+      const data = await login(parsed.data.login, parsed.data.password);
+      setUser(data.user);
+      router.push(data.user.mustChangePassword ? '/change-password' : '/');
     } catch (err) {
       const code = err instanceof ApiError ? err.problem?.code : undefined;
       setError(

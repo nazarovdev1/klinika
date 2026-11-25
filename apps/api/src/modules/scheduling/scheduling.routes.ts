@@ -22,6 +22,12 @@ export function schedulingRouter(env: Env, service: SchedulingService): Router {
   // Schedules/exceptions are configuration: settings:manage.
   const manage = [authenticate(env), requirePermission('settings:manage')];
 
+  // Doctor directory for the calendar/booking UI (registrars cannot list staff).
+  router.get('/doctors', ...read, async (req, res) => {
+    const ctx = getAuth(req);
+    const users = await service.listDoctors(ctx);
+    res.json({ items: users });
+  });
   router.get('/doctors/:id/schedules', ...read, async (req, res) => {
     res.json({ items: await service.listSchedules(getAuth(req), idParam.parse(req.params).id) });
   });

@@ -123,6 +123,24 @@ export function schedulingService(db: Db, realtime: Realtime, queue: QueueServic
   };
 
   return {
+    /** Active doctors with their profile (calendar/booking dropdowns). */
+    async listDoctors(ctx: AuthContext) {
+      const users = await tenant(ctx).user.findMany({
+        where: { role: 'DOCTOR', isActive: true, deletedAt: null },
+        include: { doctorProfile: true, branches: true },
+        orderBy: { fullName: 'asc' },
+      });
+      return users.map((u) => ({
+        id: u.id,
+        fullName: u.fullName,
+        specialty: u.doctorProfile?.specialty ?? null,
+        cabinet: u.doctorProfile?.cabinet ?? null,
+        color: u.doctorProfile?.color ?? null,
+        defaultSlotMinutes: u.doctorProfile?.defaultSlotMinutes ?? 20,
+        branchIds: u.branches.map((b) => b.branchId),
+      }));
+    },
+
     // ---- weekly templates and exceptions -------------------------------------------------------
     async listSchedules(ctx: AuthContext, doctorId: string) {
       const rows = await tenant(ctx).doctorSchedule.findMany({

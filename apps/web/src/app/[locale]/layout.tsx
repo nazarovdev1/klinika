@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Providers } from '@/components/providers';
+import { SessionProvider } from '@/lib/session';
 import { routing } from '@/i18n/routing';
 import '../globals.css';
 
@@ -32,7 +33,9 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <body>
         <NextIntlClientProvider>
-          <Providers>{children}</Providers>
+          <Providers>
+            <SessionProvider>{children}</SessionProvider>
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>
