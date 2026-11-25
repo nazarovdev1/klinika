@@ -2,11 +2,22 @@
 
 import type { PatientDto } from '@shifo/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  AlertTriangle,
+  CheckCheck,
+  FilePenLine,
+  FileText,
+  PenLine,
+  Plus,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge, Card, ErrorNote, Field, Input, Select } from '@/components/ui/form';
+import { Card, ErrorNote, Field, Input, Select, Status, Textarea } from '@/components/ui/form';
+import { PageHeader } from '@/components/ui/page';
 import { Link } from '@/i18n/navigation';
 import { api, openBlob } from '@/lib/api';
 import { fmtDateTime } from '@/lib/format';
@@ -191,312 +202,358 @@ export default function EncounterPage() {
     },
   });
 
-  if (enc.isLoading) return <p>{c('loading')}</p>;
+  if (enc.isLoading) return <p className="text-ink-2">{c('loading')}</p>;
   if (enc.error || !e) return <ErrorNote error={enc.error ?? new Error(c('loadError'))} />;
 
+  const past = history.data?.items.filter((h) => h.id !== id) ?? [];
+  const signed = e.status === 'SIGNED';
+
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">
-          {patient.data ? patientName(patient.data) : t('title')}
-        </h1>
-        <Badge tone={e.status === 'SIGNED' ? 'green' : 'amber'}>{t(`status.${e.status}`)}</Badge>
-        {patient.data?.allergiesText && (
-          <Badge tone="red">
-            {t('allergies')}: {patient.data.allergiesText}
-          </Badge>
-        )}
-      </div>
-      <ErrorNote error={saveAll.error ?? saveVitals.error ?? sign.error ?? addAddendum.error} />
-
-      <Card title={t('vitals')}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-          {VITAL_KEYS.map((k) => (
-            <Field key={k} label={t(`v.${k}`)}>
-              <Input
-                inputMode="decimal"
-                disabled={!canVitals}
-                value={vitals[k] ?? ''}
-                onChange={(ev) => {
-                  setVitals({ ...vitals, [k]: ev.target.value });
-                }}
-              />
-            </Field>
-          ))}
-        </div>
-        {canVitals && (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={saveVitals.isPending}
-            onClick={() => {
-              saveVitals.mutate();
-            }}
-          >
-            {t('saveVitals')}
-          </Button>
-        )}
-      </Card>
-
-      {TEXT_FIELDS.map((f) => (
-        <Card key={f} title={t(`f.${f}`)}>
-          <textarea
-            className="min-h-24 w-full rounded-md border border-border px-3 py-2"
-            disabled={!canEdit}
-            value={text[f]}
-            onChange={(ev) => {
-              setText({ ...text, [f]: ev.target.value });
-            }}
-          />
-          {canEdit && templates.data?.some((x) => x.field === f) && (
-            <div className="flex flex-wrap gap-2">
-              {templates.data
-                .filter((x) => x.field === f)
-                .map((x) => (
-                  <button
-                    key={x.id}
-                    type="button"
-                    className="rounded-full border border-border px-3 py-1 text-sm hover:bg-muted"
-                    onClick={() => {
-                      setText({ ...text, [f]: `${text[f]}${text[f] ? '\n' : ''}${x.body}` });
-                    }}
-                  >
-                    + {x.title}
-                  </button>
-                ))}
-            </div>
-          )}
-        </Card>
-      ))}
-
-      <Card title={t('diagnoses')}>
-        {dx.map((d, i) => (
-          <div key={d.icd10Code + String(i)} className="flex flex-wrap items-center gap-2">
-            <b>{d.icd10Code}</b>
-            <span className="flex-1">{d.title}</span>
-            <Select
-              className="w-44"
-              disabled={!canEdit}
-              value={d.type}
-              onChange={(ev) => {
-                setDx(
-                  dx.map((x, j) => (j === i ? { ...x, type: ev.target.value as Dx['type'] } : x)),
-                );
+    <section>
+      <PageHeader title={patient.data ? patientName(patient.data) : t('title')}>
+        <Status tone={signed ? 'ok' : 'warn'} icon={signed ? CheckCheck : FilePenLine}>
+          {t(`status.${e.status}`)}
+        </Status>
+        {canEdit && (
+          <>
+            <Button
+              variant="outline"
+              icon={Save}
+              loading={saveAll.isPending}
+              onClick={() => {
+                saveAll.mutate();
               }}
             >
-              {(['PRIMARY', 'SECONDARY', 'COMPLICATION'] as const).map((k) => (
-                <option key={k} value={k}>
-                  {t(`dx.${k}`)}
-                </option>
-              ))}
-            </Select>
-            {canEdit && (
-              <button
-                type="button"
-                className="underline"
-                onClick={() => {
-                  setDx(dx.filter((_, j) => j !== i));
-                }}
-              >
-                {c('delete')}
-              </button>
-            )}
-          </div>
-        ))}
-        {canEdit && (
-          <div className="space-y-1">
-            <Input
-              placeholder={t('icdSearch')}
-              value={icdQ}
-              onChange={(ev) => {
-                setIcdQ(ev.target.value);
+              {c('save')}
+            </Button>
+            <Button
+              icon={PenLine}
+              loading={sign.isPending}
+              disabled={!dx.some((d) => d.type === 'PRIMARY')}
+              onClick={() => {
+                sign.mutate();
               }}
-            />
-            {icd.data && icd.data.length > 0 && (
-              <ul className="rounded-md border border-border">
-                {icd.data.map((r) => (
-                  <li key={r.code}>
-                    <button
-                      type="button"
-                      className="block w-full px-3 py-2 text-left hover:bg-muted"
-                      onClick={() => {
-                        if (!dx.some((x) => x.icd10Code === r.code)) {
-                          setDx([
-                            ...dx,
-                            {
-                              icd10Code: r.code,
-                              title: r.titleUz,
-                              type: dx.some((x) => x.type === 'PRIMARY') ? 'SECONDARY' : 'PRIMARY',
-                            },
-                          ]);
-                        }
-                        setIcdQ('');
+            >
+              {t('sign')}
+            </Button>
+          </>
+        )}
+      </PageHeader>
+      {patient.data?.allergiesText && (
+        <p className="mb-3 flex items-start gap-2 rounded-control border border-danger/30 bg-danger-soft px-3 py-2 text-[14px] text-danger-text">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden />
+          <span>
+            <b className="font-semibold">{t('allergies')}:</b> {patient.data.allergiesText}
+          </span>
+        </p>
+      )}
+      <div className="mb-3">
+        <ErrorNote error={saveAll.error ?? saveVitals.error ?? sign.error ?? addAddendum.error} />
+      </div>
+
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="space-y-4">
+          {TEXT_FIELDS.map((f) => (
+            <Card key={f} title={t(`f.${f}`)}>
+              <Textarea
+                aria-label={t(`f.${f}`)}
+                className="!h-auto min-h-28 resize-y !py-2 text-[16px] leading-relaxed"
+                disabled={!canEdit}
+                value={text[f]}
+                onChange={(ev) => {
+                  setText({ ...text, [f]: ev.target.value });
+                }}
+              />
+              {canEdit && templates.data?.some((x) => x.field === f) && (
+                <div className="flex flex-wrap gap-1.5">
+                  {templates.data
+                    .filter((x) => x.field === f)
+                    .map((x) => (
+                      <button
+                        key={x.id}
+                        type="button"
+                        className="inline-flex items-center gap-1 rounded-control border border-line px-2 py-1 text-[13px] text-ink-2 hover:bg-row-hover hover:text-ink"
+                        onClick={() => {
+                          setText({ ...text, [f]: `${text[f]}${text[f] ? '\n' : ''}${x.body}` });
+                        }}
+                      >
+                        <Plus size={13} aria-hidden />
+                        {x.title}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </Card>
+          ))}
+
+          <Card title={t('diagnoses')}>
+            {dx.length > 0 && (
+              <ul className="divide-y divide-line rounded-control border border-line">
+                {dx.map((d, i) => (
+                  <li
+                    key={d.icd10Code + String(i)}
+                    className="flex flex-wrap items-center gap-3 px-3 py-2"
+                  >
+                    <span className="num w-14 font-semibold">{d.icd10Code}</span>
+                    <span className="min-w-0 flex-1 text-[15px]">{d.title}</span>
+                    <Select
+                      aria-label={t('diagnoses')}
+                      className="!w-44"
+                      disabled={!canEdit}
+                      value={d.type}
+                      onChange={(ev) => {
+                        setDx(
+                          dx.map((x, j) =>
+                            j === i ? { ...x, type: ev.target.value as Dx['type'] } : x,
+                          ),
+                        );
                       }}
                     >
-                      <b>{r.code}</b> {r.titleUz} · {r.titleRu}
-                    </button>
+                      {(['PRIMARY', 'SECONDARY', 'COMPLICATION'] as const).map((k) => (
+                        <option key={k} value={k}>
+                          {t(`dx.${k}`)}
+                        </option>
+                      ))}
+                    </Select>
+                    {canEdit && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={Trash2}
+                        onClick={() => {
+                          setDx(dx.filter((_, j) => j !== i));
+                        }}
+                      >
+                        {c('delete')}
+                      </Button>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
-          </div>
-        )}
-      </Card>
-
-      <Card title={t('prescriptions')}>
-        {rx.map((r, i) => (
-          <div key={i} className="grid gap-2 sm:grid-cols-5">
-            <Input
-              placeholder={t('rx.drug')}
-              disabled={!canEdit}
-              value={r.drugName}
-              onChange={(ev) => {
-                setRx(rx.map((x, j) => (j === i ? { ...x, drugName: ev.target.value } : x)));
-              }}
-            />
-            <Input
-              placeholder={t('rx.dosage')}
-              disabled={!canEdit}
-              value={r.dosage ?? ''}
-              onChange={(ev) => {
-                setRx(rx.map((x, j) => (j === i ? { ...x, dosage: ev.target.value } : x)));
-              }}
-            />
-            <Input
-              placeholder={t('rx.frequency')}
-              disabled={!canEdit}
-              value={r.frequency ?? ''}
-              onChange={(ev) => {
-                setRx(rx.map((x, j) => (j === i ? { ...x, frequency: ev.target.value } : x)));
-              }}
-            />
-            <Input
-              placeholder={t('rx.days')}
-              inputMode="numeric"
-              disabled={!canEdit}
-              value={r.durationDays ?? ''}
-              onChange={(ev) => {
-                setRx(
-                  rx.map((x, j) =>
-                    j === i
-                      ? { ...x, durationDays: ev.target.value ? Number(ev.target.value) : null }
-                      : x,
-                  ),
-                );
-              }}
-            />
             {canEdit && (
-              <button
-                type="button"
-                className="underline"
-                onClick={() => {
-                  setRx(rx.filter((_, j) => j !== i));
-                }}
-              >
-                {c('delete')}
-              </button>
+              <div className="space-y-1">
+                <Input
+                  placeholder={t('icdSearch')}
+                  value={icdQ}
+                  onChange={(ev) => {
+                    setIcdQ(ev.target.value);
+                  }}
+                />
+                {icd.data && icd.data.length > 0 && (
+                  <ul className="divide-y divide-line rounded-control border border-line bg-surface">
+                    {icd.data.map((r) => (
+                      <li key={r.code}>
+                        <button
+                          type="button"
+                          className="block w-full px-3 py-2 text-left text-[14px] hover:bg-row-hover"
+                          onClick={() => {
+                            if (!dx.some((x) => x.icd10Code === r.code)) {
+                              setDx([
+                                ...dx,
+                                {
+                                  icd10Code: r.code,
+                                  title: r.titleUz,
+                                  type: dx.some((x) => x.type === 'PRIMARY')
+                                    ? 'SECONDARY'
+                                    : 'PRIMARY',
+                                },
+                              ]);
+                            }
+                            setIcdQ('');
+                          }}
+                        >
+                          <b className="num font-semibold">{r.code}</b> {r.titleUz}
+                          <span className="text-ink-2"> · {r.titleRu}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             )}
-          </div>
-        ))}
-        {canEdit && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setRx([...rx, { drugName: '' }]);
-            }}
-          >
-            {c('add')}
-          </Button>
-        )}
-      </Card>
+          </Card>
 
-      {canEdit && (
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={saveAll.isPending}
-            onClick={() => {
-              saveAll.mutate();
-            }}
+          <Card
+            title={t('prescriptions')}
+            actions={
+              canEdit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={Plus}
+                  onClick={() => {
+                    setRx([...rx, { drugName: '' }]);
+                  }}
+                >
+                  {c('add')}
+                </Button>
+              )
+            }
           >
-            {c('save')}
-          </Button>
-          <Button
-            type="button"
-            disabled={sign.isPending || !dx.some((d) => d.type === 'PRIMARY')}
-            onClick={() => {
-              sign.mutate();
-            }}
-          >
-            {t('sign')}
-          </Button>
-        </div>
-      )}
-
-      {e.status === 'SIGNED' && (
-        <Card title={t('signedAt', { date: fmtDateTime(e.signedAt) })}>
-          <div className="flex gap-3">
-            {(['uz', 'ru'] as const).map((l) => (
-              <Button
-                key={l}
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  void openBlob(`/encounters/${id}/pdf?lang=${l}`);
-                }}
-              >
-                {c('pdf')} {l.toUpperCase()}
-              </Button>
+            {rx.map((r, i) => (
+              <div key={i} className="grid items-center gap-2 sm:grid-cols-[2fr_1fr_1fr_80px_auto]">
+                <Input
+                  aria-label={t('rx.drug')}
+                  placeholder={t('rx.drug')}
+                  disabled={!canEdit}
+                  value={r.drugName}
+                  onChange={(ev) => {
+                    setRx(rx.map((x, j) => (j === i ? { ...x, drugName: ev.target.value } : x)));
+                  }}
+                />
+                <Input
+                  aria-label={t('rx.dosage')}
+                  placeholder={t('rx.dosage')}
+                  disabled={!canEdit}
+                  value={r.dosage ?? ''}
+                  onChange={(ev) => {
+                    setRx(rx.map((x, j) => (j === i ? { ...x, dosage: ev.target.value } : x)));
+                  }}
+                />
+                <Input
+                  aria-label={t('rx.frequency')}
+                  placeholder={t('rx.frequency')}
+                  disabled={!canEdit}
+                  value={r.frequency ?? ''}
+                  onChange={(ev) => {
+                    setRx(rx.map((x, j) => (j === i ? { ...x, frequency: ev.target.value } : x)));
+                  }}
+                />
+                <Input
+                  aria-label={t('rx.days')}
+                  className="num"
+                  placeholder={t('rx.days')}
+                  inputMode="numeric"
+                  disabled={!canEdit}
+                  value={r.durationDays ?? ''}
+                  onChange={(ev) => {
+                    setRx(
+                      rx.map((x, j) =>
+                        j === i
+                          ? { ...x, durationDays: ev.target.value ? Number(ev.target.value) : null }
+                          : x,
+                      ),
+                    );
+                  }}
+                />
+                {canEdit ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={Trash2}
+                    onClick={() => {
+                      setRx(rx.filter((_, j) => j !== i));
+                    }}
+                  >
+                    {c('delete')}
+                  </Button>
+                ) : (
+                  <span />
+                )}
+              </div>
             ))}
-          </div>
-          {e.addenda.map((a) => (
-            <p key={a.id} className="border-l-4 border-border pl-3">
-              <span className="text-sm text-muted-foreground">{fmtDateTime(a.createdAt)}</span>
-              <br />
-              {a.text}
-            </p>
-          ))}
-          {mine && can('encounters:write') && (
-            <div className="space-y-2">
-              <textarea
-                className="min-h-20 w-full rounded-md border border-border px-3 py-2"
-                placeholder={t('addendum')}
-                value={addendum}
-                onChange={(ev) => {
-                  setAddendum(ev.target.value);
-                }}
-              />
-              <Button
-                type="button"
-                disabled={!addendum.trim() || addAddendum.isPending}
-                onClick={() => {
-                  addAddendum.mutate();
-                }}
-              >
-                {t('addAddendum')}
-              </Button>
-            </div>
-          )}
-        </Card>
-      )}
+            {rx.length === 0 && <p className="text-[14px] text-ink-2">—</p>}
+          </Card>
 
-      {(history.data?.items.filter((h) => h.id !== id).length ?? 0) > 0 && (
-        <Card title={t('history')}>
-          <ul>
-            {history.data?.items
-              .filter((h) => h.id !== id)
-              .map((h) => (
-                <li key={h.id}>
-                  <Link className="underline" href={`/visits/${h.id}`}>
-                    {fmtDateTime(h.signedAt)}
-                  </Link>
-                </li>
+          {signed && (
+            <Card title={t('signedAt', { date: fmtDateTime(e.signedAt) })}>
+              <div className="flex gap-2">
+                {(['uz', 'ru'] as const).map((l) => (
+                  <Button
+                    key={l}
+                    variant="outline"
+                    icon={FileText}
+                    onClick={() => {
+                      void openBlob(`/encounters/${id}/pdf?lang=${l}`);
+                    }}
+                  >
+                    {c('pdf')} {l.toUpperCase()}
+                  </Button>
+                ))}
+              </div>
+              {e.addenda.map((a) => (
+                <div key={a.id} className="rounded-control border border-line bg-bg px-3 py-2">
+                  <p className="num text-[13px] text-ink-2">{fmtDateTime(a.createdAt)}</p>
+                  <p className="text-[15px]">{a.text}</p>
+                </div>
               ))}
-          </ul>
-        </Card>
-      )}
+              {mine && can('encounters:write') && (
+                <div className="space-y-2">
+                  <Textarea
+                    aria-label={t('addendum')}
+                    className="!h-auto min-h-20 !py-2"
+                    placeholder={t('addendum')}
+                    value={addendum}
+                    onChange={(ev) => {
+                      setAddendum(ev.target.value);
+                    }}
+                  />
+                  <Button
+                    loading={addAddendum.isPending}
+                    disabled={!addendum.trim()}
+                    onClick={() => {
+                      addAddendum.mutate();
+                    }}
+                  >
+                    {t('addAddendum')}
+                  </Button>
+                </div>
+              )}
+            </Card>
+          )}
+        </div>
+
+        <aside className="space-y-4 xl:sticky xl:top-4">
+          <Card
+            title={t('vitals')}
+            actions={
+              canVitals && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={Save}
+                  loading={saveVitals.isPending}
+                  onClick={() => {
+                    saveVitals.mutate();
+                  }}
+                >
+                  {t('saveVitals')}
+                </Button>
+              )
+            }
+          >
+            <div className="grid grid-cols-2 gap-3">
+              {VITAL_KEYS.map((k) => (
+                <Field key={k} label={t(`v.${k}`)}>
+                  <Input
+                    className="num"
+                    inputMode="decimal"
+                    disabled={!canVitals}
+                    value={vitals[k] ?? ''}
+                    onChange={(ev) => {
+                      setVitals({ ...vitals, [k]: ev.target.value });
+                    }}
+                  />
+                </Field>
+              ))}
+            </div>
+          </Card>
+          {past.length > 0 && (
+            <Card title={t('history')} flush>
+              <ul className="divide-y divide-line">
+                {past.map((h) => (
+                  <li key={h.id} className="px-4 py-2 text-[14px]">
+                    <Link className="num" href={`/visits/${h.id}`}>
+                      {fmtDateTime(h.signedAt)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </aside>
+      </div>
     </section>
   );
 }

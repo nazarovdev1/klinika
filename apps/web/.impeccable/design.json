@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-25T00:00:00Z",
+  "title": "Design System: Shifo",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Deep Clinic Teal", "canonical": "#0b6e69", "tonalRamp": ["#04302e", "#08524e", "#0b6e69", "#3b8b86", "#6da9a5", "#9ec5c2", "#c8dfdd", "#e4f0ef"] },
+      "primary-hover": { "role": "primary", "displayName": "Pressed Teal", "canonical": "#08524e", "tonalRamp": ["#021f1d", "#053a37", "#08524e", "#2f6f6b", "#5d8e8b", "#8fb0ad", "#bfd2d0", "#e1eceb"] },
+      "primary-soft": { "role": "primary", "displayName": "Teal Wash", "canonical": "#e4f0ef", "tonalRamp": ["#08524e", "#0b6e69", "#4d908c", "#85b3b0", "#a9c9c7", "#c5dcda", "#d8e9e8", "#e4f0ef"] },
+      "ink": { "role": "neutral", "displayName": "Clinic Ink", "canonical": "#1f2a30", "tonalRamp": ["#0c1113", "#1f2a30", "#37444c", "#4c6272", "#7a8a95", "#a7b2ba", "#d0d6da", "#eceff1"] },
+      "ink-secondary": { "role": "neutral", "displayName": "Slate Secondary", "canonical": "#4c6272", "tonalRamp": ["#1f2a30", "#2f3d47", "#3d505d", "#4c6272", "#71838f", "#96a4ad", "#bcc6cc", "#e1e6e9"] },
+      "line": { "role": "neutral", "displayName": "Hairline Grey", "canonical": "#d8dde0", "tonalRamp": ["#7f8a91", "#9aa3a9", "#b7c0c5", "#d8dde0", "#e1e5e7", "#e8ebed", "#f1f3f4", "#f8f9fa"] },
+      "app-bg": { "role": "neutral", "displayName": "Desk Grey", "canonical": "#f6f8f9", "tonalRamp": ["#c9d0d4", "#d8dde0", "#e3e7e9", "#eaeef0", "#f1f4f5", "#f6f8f9", "#fafbfc", "#ffffff"] },
+      "surface": { "role": "neutral", "displayName": "Sheet White", "canonical": "#ffffff", "tonalRamp": ["#d8dde0", "#e3e7e9", "#eceff1", "#f1f4f5", "#f6f8f9", "#fafbfc", "#fdfdfe", "#ffffff"] },
+      "row-hover": { "role": "neutral", "displayName": "Row Tint", "canonical": "#f1f4f5", "tonalRamp": ["#d8dde0", "#e3e7e9", "#eaeef0", "#f1f4f5", "#f4f6f7", "#f6f8f9", "#fafbfc", "#ffffff"] },
+      "ok": { "role": "semantic", "displayName": "Success Green", "canonical": "#1e7b3a", "tonalRamp": ["#0c3118", "#176331", "#1e7b3a", "#4e9a65", "#7fb990", "#aed3b9", "#d0e6d6", "#e7f2ea"] },
+      "warn": { "role": "semantic", "displayName": "Warning Amber", "canonical": "#b26b00", "tonalRamp": ["#472b00", "#7a4a00", "#b26b00", "#c78a33", "#d9a966", "#e8c999", "#f3e0c2", "#fbf1df"] },
+      "danger": { "role": "semantic", "displayName": "Danger Red", "canonical": "#c2271e", "tonalRamp": ["#4d0f0b", "#a81f17", "#c2271e", "#d05850", "#de8982", "#ebb4b0", "#f4d3d0", "#fbeae8"] },
+      "info": { "role": "semantic", "displayName": "Info Blue", "canonical": "#1f5fa8", "tonalRamp": ["#0c2745", "#1a4f8c", "#1f5fa8", "#4f81bb", "#80a3cd", "#b0c6e0", "#d1ddee", "#e8f0f9"] }
+    },
+    "typographyMeta": {
+      "title": { "displayName": "Title", "purpose": "Page titles and KPI values (22px/600)." },
+      "card-title": { "displayName": "Card Title", "purpose": "Card header rows (15px/600)." },
+      "body": { "displayName": "Body", "purpose": "Default UI text, nav, buttons (14px/400)." },
+      "table": { "displayName": "Table", "purpose": "Dense data tables and small buttons (13px)." },
+      "field": { "displayName": "Field", "purpose": "Text inside inputs and selects (15px)." },
+      "label": { "displayName": "Label", "purpose": "Field labels and table headers (13px/500, secondary colour)." },
+      "caption": { "displayName": "Caption", "purpose": "Status chips, hints, role line (12px/500)." }
+    },
+    "shadows": [
+      { "name": "floating-drawer", "value": "0 8px 24px rgba(31,42,48,0.12)", "purpose": "Only floating layer in the build: the mobile nav drawer. Reuse for popovers and modals; nowhere else." }
+    ],
+    "motion": [
+      { "name": "color-fast", "value": "150ms transition-colors", "purpose": "Button and nav hover colour change." },
+      { "name": "border-fast", "value": "120ms ease-out", "purpose": "Field border colour on hover." },
+      { "name": "reduced-motion", "value": "0.01ms", "purpose": "All transitions and animations collapse under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "split-narrow", "value": "1100px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single main action of a page or form.",
+      "html": "<button class=\"ds-btn-primary\">Saqlash</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; font-size: 14px; font-weight: 500; white-space: nowrap; color: #fff; background: var(--primary, #0b6e69); border: 1px solid var(--primary, #0b6e69); border-radius: 6px; transition: background-color 150ms, border-color 150ms; cursor: pointer; } .ds-btn-primary:hover { background: var(--primary-hover, #08524e); border-color: var(--primary-hover, #08524e); } .ds-btn-primary:focus-visible { outline: 2px solid var(--primary, #0b6e69); outline-offset: 2px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions beside a primary button.",
+      "html": "<button class=\"ds-btn-outline\">Bekor qilish</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; font-size: 14px; font-weight: 500; color: var(--ink, #1f2a30); background: var(--surface, #fff); border: 1px solid var(--line, #d8dde0); border-radius: 6px; transition: background-color 150ms; cursor: pointer; } .ds-btn-outline:hover { background: var(--row-hover, #f1f4f5); } .ds-btn-outline:focus-visible { outline: 2px solid var(--primary, #0b6e69); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled 38px input with hairline border and teal focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-label\">Telefon</span><input class=\"ds-input\" value=\"+998 90 123 45 67\"></label>",
+      "css": ".ds-field { display: block; } .ds-label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 500; color: var(--ink-2, #4c6272); } .ds-input { width: 100%; box-sizing: border-box; height: 38px; padding: 0 10px; font-size: 15px; color: var(--ink, #1f2a30); background: var(--surface, #fff); border: 1px solid var(--line, #d8dde0); border-radius: 6px; transition: border-color 120ms ease-out; } .ds-input:hover { border-color: #b7c0c5; } .ds-input:focus-visible { outline: 2px solid var(--primary, #0b6e69); outline-offset: 0; border-color: var(--primary, #0b6e69); }"
+    },
+    {
+      "name": "Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Sidebar link: 18px outline icon plus label; active state is teal wash.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item\" aria-current=\"page\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/></svg>Kalendar</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/></svg>Bemorlar</a></nav>",
+      "css": ".ds-nav { width: 216px; } .ds-nav-item { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; font-size: 14px; color: var(--ink, #1f2a30); text-decoration: none; border-radius: 6px; transition: background-color 150ms; } .ds-nav-item svg { color: var(--ink-2, #4c6272); } .ds-nav-item:hover { background: var(--row-hover, #f1f4f5); } .ds-nav-item[aria-current='page'] { background: var(--primary-soft, #e4f0ef); color: var(--primary-hover, #08524e); font-weight: 500; } .ds-nav-item[aria-current='page'] svg { color: var(--primary, #0b6e69); } .ds-nav-item:focus-visible { outline: 2px solid var(--primary, #0b6e69); outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "status-ok",
+      "description": "Tone + icon + text; never colour alone.",
+      "html": "<span class=\"ds-status\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg>To'langan</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 12px; font-weight: 500; color: var(--ok-text, #176331); background: var(--ok-soft, #e7f2ea); border-radius: 6px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Bordered white section with quiet header row; no shadow.",
+      "html": "<section class=\"ds-card\"><header class=\"ds-card-h\"><h2>Bugungi qabul</h2></header><div class=\"ds-card-b\">Content</div></section>",
+      "css": ".ds-card { background: var(--surface, #fff); border: 1px solid var(--line, #d8dde0); border-radius: 8px; } .ds-card-h { display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-bottom: 1px solid var(--line, #d8dde0); } .ds-card-h h2 { margin: 0; font-size: 15px; font-weight: 600; } .ds-card-b { padding: 16px; font-size: 14px; color: var(--ink, #1f2a30); }"
+    },
+    {
+      "name": "Data Table",
+      "kind": "custom",
+      "description": "Signature dense table: 13px, 44px rows, sticky header, tabular numerals.",
+      "html": "<table class=\"ds-tbl\"><thead><tr><th>Bemor</th><th class=\"r\">Summa</th></tr></thead><tbody><tr><td>Karimov A.</td><td class=\"r\">120 000</td></tr><tr><td>Aliyeva N.</td><td class=\"r\">85 000</td></tr></tbody></table>",
+      "css": ".ds-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; text-align: left; background: var(--surface, #fff); } .ds-tbl th { padding: 9px 12px; font-weight: 500; color: var(--ink-2, #4c6272); border-bottom: 1px solid var(--line, #d8dde0); white-space: nowrap; } .ds-tbl td { height: 44px; padding: 8px 12px; border-bottom: 1px solid var(--line, #d8dde0); vertical-align: middle; font-variant-numeric: tabular-nums; } .ds-tbl tbody tr:last-child td { border-bottom: 0; } .ds-tbl tbody tr:hover { background: var(--row-hover, #f1f4f5); } .ds-tbl .r { text-align: right; }"
+    },
+    {
+      "name": "KPI Strip",
+      "kind": "custom",
+      "description": "One bordered row of figures with hairline dividers; no tiles.",
+      "html": "<dl class=\"ds-kpi\"><div><dt>Tushum</dt><dd>4 250 000</dd></div><div><dt>Qarz</dt><dd>310 000</dd></div></dl>",
+      "css": ".ds-kpi { display: grid; grid-template-columns: repeat(2, 1fr); margin: 0; background: var(--surface, #fff); border: 1px solid var(--line, #d8dde0); border-radius: 8px; } .ds-kpi > div { padding: 12px 16px; } .ds-kpi > div + div { border-left: 1px solid var(--line, #d8dde0); } .ds-kpi dt { font-size: 13px; color: var(--ink-2, #4c6272); } .ds-kpi dd { margin: 2px 0 0; font-size: 22px; font-weight: 600; line-height: 1.25; font-variant-numeric: tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Clinic Ledger",
+    "overview": "Shifo's staff app reads like a well-kept ledger: white sheets with hairline rules on a pale cool-grey desk, one deep teal for the things you act on, and ink-dark text. It is built for the registrar's sixth hour on a 1366x768 monitor, so density, alignment and predictability outrank first impressions. Nothing is decorated; every surface is a bordered, solid-colour plane.\n\nHierarchy comes from weight (400/500/600), size steps of a pixel or two, and hairline dividers, not from shadow or colour. Colour is rationed: teal marks the primary action and the current location, and status hues appear only as icon-plus-text chips.",
+    "keyCharacteristics": [
+      "Flat, border-defined surfaces on a cool grey app background; no gradients anywhere.",
+      "One accent (deep teal), used sparingly; status colours carry meaning only.",
+      "13-14px dense tables with 44px rows, 15px form fields, 22px page titles.",
+      "Tabular numerals for money, times, queue numbers and IDs.",
+      "Every status is icon plus text, never colour alone."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Teal is the only brand colour and appears on the primary action, the current location and focus. If a screen has two teal buttons, one is wrong.", "section": "colors" },
+      { "name": "The Never Colour Alone Rule", "body": "A state is always tone + Lucide icon + text label, rendered through the Status component.", "section": "colors" },
+      { "name": "The Solid Colour Rule", "body": "No gradients, glows or translucent glass. Tints are flat -soft values.", "section": "colors" },
+      { "name": "The Tabular Figures Rule", "body": "Any number compared down a column or read as an identifier (money, time, queue number, ID) gets the num class (tabular-nums). Default text keeps proportional figures.", "section": "typography" },
+      { "name": "The Three Weights Rule", "body": "400, 500, 600 only. Emphasis is weight, not size or colour.", "section": "typography" },
+      { "name": "The Border Not Shadow Rule", "body": "Cards, tables, KPI strips and panels separate with line borders. A shadow is permitted only on a surface that floats over content.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do separate surfaces with 1px line borders and radius 6px (controls) or 8px (containers).",
+      "Do pair every status hue with its Lucide icon and text through Status or Notice.",
+      "Do set money, times, queue numbers and IDs in tabular numerals.",
+      "Do keep one primary action per page header, right-aligned.",
+      "Do keep a visible 2px teal focus ring on all interactive elements and honour reduced motion.",
+      "Do keep icon-bearing navigation labelled, with Lucide outline icons at 16-20px."
+    ],
+    "donts": [
+      "Don't use gradients, glow, glassmorphism, purple/indigo, or dark-mode-first styling.",
+      "Don't add shadows to cards or tables; only floating layers may carry the one drawer shadow.",
+      "Don't use radii above 8px or large icon tiles above headings.",
+      "Don't use emoji or glyph characters as icons.",
+      "Don't use weights outside 400/500/600, or Inter/Roboto as the main face.",
+      "Don't add Uzbek ornament to working screens."
+    ]
+  }
+}

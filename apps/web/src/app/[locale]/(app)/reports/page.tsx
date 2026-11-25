@@ -2,10 +2,12 @@
 
 import { REPORT_NAMES } from '@shifo/contracts';
 import { useQuery } from '@tanstack/react-query';
+import { Download, FileBarChart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, ErrorNote, Field, Input, Select } from '@/components/ui/form';
+import { EmptyState, PageHeader, Toolbar } from '@/components/ui/page';
 import { api, openBlob } from '@/lib/api';
 import { formatMoney, today } from '@/lib/format';
 
@@ -42,12 +44,24 @@ export default function ReportsPage() {
   });
   const cell = (col: string, v: string | number | null) =>
     v === null ? '—' : MONEY_COLUMNS.has(col) && typeof v === 'string' ? formatMoney(v) : String(v);
+  const numeric = (col: string, v: string | number | null) =>
+    MONEY_COLUMNS.has(col) || typeof v === 'number';
 
   return (
-    <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
-      <div className="grid max-w-3xl gap-3 sm:grid-cols-4">
-        <Field label={t('report')}>
+    <section>
+      <PageHeader title={t('title')}>
+        <Button
+          variant="outline"
+          icon={Download}
+          onClick={() => {
+            void openBlob(`/reports/${name}?${qs}&format=csv`, `${name}-${from}_${to}.csv`);
+          }}
+        >
+          {t('exportCsv')}
+        </Button>
+      </PageHeader>
+      <Toolbar>
+        <Field label={t('report')} className="w-64">
           <Select
             value={name}
             onChange={(e) => {
@@ -61,8 +75,9 @@ export default function ReportsPage() {
             ))}
           </Select>
         </Field>
-        <Field label={c('from')}>
+        <Field label={c('from')} className="w-40">
           <Input
+            className="num"
             type="date"
             value={from}
             onChange={(e) => {
@@ -70,8 +85,9 @@ export default function ReportsPage() {
             }}
           />
         </Field>
-        <Field label={c('to')}>
+        <Field label={c('to')} className="w-40">
           <Input
+            className="num"
             type="date"
             value={to}
             onChange={(e) => {
@@ -79,27 +95,17 @@ export default function ReportsPage() {
             }}
           />
         </Field>
-        <div className="flex items-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              void openBlob(`/reports/${name}?${qs}&format=csv`, `${name}-${from}_${to}.csv`);
-            }}
-          >
-            {t('exportCsv')}
-          </Button>
-        </div>
-      </div>
+      </Toolbar>
       <ErrorNote error={report.error} />
+      {report.isPending && <p className="text-[14px] text-ink-2">{c('loading')}</p>}
       {report.data && (
-        <Card>
+        <Card flush>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left">
+            <table className="tbl">
               <thead>
-                <tr className="border-b border-border">
+                <tr>
                   {report.data.columns.map((col) => (
-                    <th key={col} className="py-2 pr-4">
+                    <th key={col} className={MONEY_COLUMNS.has(col) ? 'r' : undefined}>
                       {t(`col.${col}`)}
                     </th>
                   ))}
@@ -107,25 +113,40 @@ export default function ReportsPage() {
               </thead>
               <tbody>
                 {report.data.rows.map((r, i) => (
-                  <tr key={i} className="border-b border-border">
+                  <tr key={i}>
                     {report.data.columns.map((col) => (
-                      <td key={col} className="py-1 pr-4">
+                      <td
+                        key={col}
+                        className={`num ${numeric(col, r[col] ?? null) && MONEY_COLUMNS.has(col) ? 'r' : ''}`}
+                      >
                         {cell(col, r[col] ?? null)}
                       </td>
                     ))}
                   </tr>
                 ))}
               </tbody>
+              {report.data.totals && (
+                <tfoot>
+                  <tr className="border-t border-line bg-bg font-semibold">
+                    {report.data.columns.map((col, i) => (
+                      <td
+                        key={col}
+                        className={`num px-3 py-2 ${MONEY_COLUMNS.has(col) ? 'text-right' : ''}`}
+                      >
+                        {i === 0 && !(col in (report.data.totals ?? {}))
+                          ? c('total')
+                          : cell(col, report.data.totals?.[col] ?? null) === '—'
+                            ? ''
+                            : cell(col, report.data.totals?.[col] ?? null)}
+                      </td>
+                    ))}
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
-          {report.data.rows.length === 0 && <p>{c('empty')}</p>}
-          {report.data.totals && (
-            <p className="font-medium">
-              {c('total')}:{' '}
-              {Object.entries(report.data.totals)
-                .map(([k, v]) => `${t(`col.${k}`)} ${cell(k, v)}`)
-                .join(' · ')}
-            </p>
+          {report.data.rows.length === 0 && (
+            <EmptyState icon={FileBarChart}>{c('empty')}</EmptyState>
           )}
         </Card>
       )}

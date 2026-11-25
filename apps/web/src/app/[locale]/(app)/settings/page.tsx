@@ -2,10 +2,12 @@
 
 import type { StaffDto } from '@shifo/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Check, Plus, Power, Save, Trash2, UserPlus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge, Card, ErrorNote, Field, Input, Select } from '@/components/ui/form';
+import { Card, ErrorNote, Field, Input, Select, Status } from '@/components/ui/form';
+import { PageHeader, Tabs } from '@/components/ui/page';
 import { api } from '@/lib/api';
 import { formatMoney, parseMoney, today } from '@/lib/format';
 import { useBranches, useDoctors, useServices } from '@/lib/queries';
@@ -63,108 +65,113 @@ function StaffTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['staff'] }),
   });
   return (
-    <div className="space-y-6">
-      <ErrorNote error={staff.error ?? create.error ?? toggle.error} />
-      <table className="w-full border-collapse text-left">
-        <thead>
-          <tr className="border-b border-border">
-            <th className="py-2">{t('fullName')}</th>
-            <th>{t('login')}</th>
-            <th>{t('role')}</th>
-            <th>{c('status')}</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {staff.data?.items.map((s) => (
-            <tr key={s.id} className="border-b border-border">
-              <td className="py-2">{s.fullName}</td>
-              <td>{s.login}</td>
-              <td>{s.role}</td>
-              <td>
-                <Badge tone={s.isActive ? 'green' : 'red'}>
-                  {s.isActive ? t('active') : t('inactive')}
-                </Badge>
-              </td>
-              <td>
-                <button
-                  type="button"
-                  className="underline"
-                  onClick={() => {
-                    toggle.mutate(s);
-                  }}
-                >
-                  {s.isActive ? t('deactivate') : t('activate')}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <Card title={t('newStaff')}>
-        <div className="grid max-w-3xl gap-3 sm:grid-cols-2">
-          <Field label={t('fullName')}>
-            <Input
-              value={f.fullName}
-              onChange={(e) => {
-                setF({ ...f, fullName: e.target.value });
-              }}
-            />
-          </Field>
-          <Field label={t('phone')}>
-            <Input
-              value={f.phone}
-              onChange={(e) => {
-                setF({ ...f, phone: e.target.value });
-              }}
-            />
-          </Field>
-          <Field label={t('login')}>
-            <Input
-              value={f.login}
-              onChange={(e) => {
-                setF({ ...f, login: e.target.value });
-              }}
-            />
-          </Field>
-          <Field label={t('tempPassword')}>
-            <Input
-              type="password"
-              autoComplete="new-password"
-              value={f.password}
-              onChange={(e) => {
-                setF({ ...f, password: e.target.value });
-              }}
-            />
-          </Field>
-          <Field label={t('role')}>
-            <Select
-              value={f.role}
-              onChange={(e) => {
-                setF({ ...f, role: e.target.value });
-              }}
-            >
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="space-y-3">
+        <ErrorNote error={staff.error ?? create.error ?? toggle.error} />
+        <Card flush>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>{t('fullName')}</th>
+                <th>{t('login')}</th>
+                <th>{t('role')}</th>
+                <th>{c('status')}</th>
+                <th className="r">{c('actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staff.data?.items.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.fullName}</td>
+                  <td className="num">{s.login}</td>
+                  <td className="text-ink-2">{s.role}</td>
+                  <td>
+                    <Status tone={s.isActive ? 'ok' : 'danger'}>
+                      {s.isActive ? t('active') : t('inactive')}
+                    </Status>
+                  </td>
+                  <td className="r">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={Power}
+                      onClick={() => {
+                        toggle.mutate(s);
+                      }}
+                    >
+                      {s.isActive ? t('deactivate') : t('activate')}
+                    </Button>
+                  </td>
+                </tr>
               ))}
-            </Select>
+            </tbody>
+          </table>
+        </Card>
+      </div>
+      <Card title={t('newStaff')}>
+        <Field label={t('fullName')}>
+          <Input
+            value={f.fullName}
+            onChange={(e) => {
+              setF({ ...f, fullName: e.target.value });
+            }}
+          />
+        </Field>
+        <Field label={t('phone')}>
+          <Input
+            className="num"
+            value={f.phone}
+            onChange={(e) => {
+              setF({ ...f, phone: e.target.value });
+            }}
+          />
+        </Field>
+        <Field label={t('login')}>
+          <Input
+            value={f.login}
+            onChange={(e) => {
+              setF({ ...f, login: e.target.value });
+            }}
+          />
+        </Field>
+        <Field label={t('tempPassword')}>
+          <Input
+            type="password"
+            autoComplete="new-password"
+            value={f.password}
+            onChange={(e) => {
+              setF({ ...f, password: e.target.value });
+            }}
+          />
+        </Field>
+        <Field label={t('role')}>
+          <Select
+            value={f.role}
+            onChange={(e) => {
+              setF({ ...f, role: e.target.value });
+            }}
+          >
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        {f.role === 'DOCTOR' && (
+          <Field label={t('specialty')}>
+            <Input
+              value={f.specialty}
+              onChange={(e) => {
+                setF({ ...f, specialty: e.target.value });
+              }}
+            />
           </Field>
-          {f.role === 'DOCTOR' && (
-            <Field label={t('specialty')}>
-              <Input
-                value={f.specialty}
-                onChange={(e) => {
-                  setF({ ...f, specialty: e.target.value });
-                }}
-              />
-            </Field>
-          )}
-        </div>
+        )}
         <Button
-          type="button"
-          disabled={create.isPending || !f.fullName || !f.login || !f.password}
+          icon={UserPlus}
+          loading={create.isPending}
+          disabled={!f.fullName || !f.login || !f.password}
           onClick={() => {
             create.mutate();
           }}
@@ -207,99 +214,111 @@ function CatalogTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['services'] }),
   });
   return (
-    <div className="space-y-6">
-      <ErrorNote error={create.error ?? setPrice.error} />
-      <Input
-        placeholder={c('search')}
-        value={q}
-        onChange={(e) => {
-          setQ(e.target.value);
-        }}
-        className="max-w-sm"
-      />
-      <table className="w-full border-collapse text-left">
-        <thead>
-          <tr className="border-b border-border">
-            <th className="py-2">{t('code')}</th>
-            <th>{c('service')}</th>
-            <th>{t('price')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {services.data?.map((s) => (
-            <tr key={s.id} className="border-b border-border">
-              <td className="py-2">{s.code}</td>
-              <td>{s.nameUz}</td>
-              <td className="flex items-center gap-2 py-1">
-                <Input
-                  className="w-36"
-                  inputMode="numeric"
-                  value={priceEdit[s.id] ?? formatMoney(s.price?.price)}
-                  onChange={(e) => {
-                    setPriceEdit({ ...priceEdit, [s.id]: e.target.value });
-                  }}
-                />
-                {priceEdit[s.id] !== undefined && parseMoney(priceEdit[s.id] ?? '') && (
-                  <button
-                    type="button"
-                    className="underline"
-                    onClick={() => {
-                      setPrice.mutate({
-                        id: s.id,
-                        price: parseMoney(priceEdit[s.id] ?? '') ?? '0',
-                      });
-                      setPriceEdit(
-                        Object.fromEntries(Object.entries(priceEdit).filter(([k]) => k !== s.id)),
-                      );
-                    }}
-                  >
-                    {c('save')}
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="space-y-3">
+        <ErrorNote error={create.error ?? setPrice.error} />
+        <Input
+          placeholder={c('search')}
+          aria-label={c('search')}
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+          }}
+          className="max-w-sm"
+        />
+        <Card flush>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>{t('code')}</th>
+                <th>{c('service')}</th>
+                <th>{t('price')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {services.data?.map((s) => (
+                <tr key={s.id}>
+                  <td className="num">{s.code}</td>
+                  <td>{s.nameUz}</td>
+                  <td>
+                    <span className="flex items-center gap-2">
+                      <Input
+                        aria-label={`${s.nameUz} ${t('price')}`}
+                        className="num !h-8 !w-36 text-right"
+                        inputMode="numeric"
+                        value={priceEdit[s.id] ?? formatMoney(s.price?.price)}
+                        onChange={(e) => {
+                          setPriceEdit({ ...priceEdit, [s.id]: e.target.value });
+                        }}
+                      />
+                      {priceEdit[s.id] !== undefined && parseMoney(priceEdit[s.id] ?? '') && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          icon={Check}
+                          onClick={() => {
+                            setPrice.mutate({
+                              id: s.id,
+                              price: parseMoney(priceEdit[s.id] ?? '') ?? '0',
+                            });
+                            setPriceEdit(
+                              Object.fromEntries(
+                                Object.entries(priceEdit).filter(([k]) => k !== s.id),
+                              ),
+                            );
+                          }}
+                        >
+                          {c('save')}
+                        </Button>
+                      )}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      </div>
       <Card title={t('newService')}>
-        <div className="grid max-w-3xl gap-3 sm:grid-cols-4">
-          <Field label={t('code')}>
-            <Input
-              value={f.code}
-              onChange={(e) => {
-                setF({ ...f, code: e.target.value });
-              }}
-            />
-          </Field>
-          <Field label="UZ">
-            <Input
-              value={f.nameUz}
-              onChange={(e) => {
-                setF({ ...f, nameUz: e.target.value });
-              }}
-            />
-          </Field>
-          <Field label="RU">
-            <Input
-              value={f.nameRu}
-              onChange={(e) => {
-                setF({ ...f, nameRu: e.target.value });
-              }}
-            />
-          </Field>
-          <Field label={t('price')}>
-            <Input
-              inputMode="numeric"
-              value={f.price}
-              onChange={(e) => {
-                setF({ ...f, price: e.target.value });
-              }}
-            />
-          </Field>
-        </div>
+        <Field label={t('code')}>
+          <Input
+            className="num"
+            value={f.code}
+            onChange={(e) => {
+              setF({ ...f, code: e.target.value });
+            }}
+          />
+        </Field>
+        <Field label="UZ">
+          <Input
+            value={f.nameUz}
+            onChange={(e) => {
+              setF({ ...f, nameUz: e.target.value });
+            }}
+          />
+        </Field>
+        <Field label="RU">
+          <Input
+            value={f.nameRu}
+            onChange={(e) => {
+              setF({ ...f, nameRu: e.target.value });
+            }}
+          />
+        </Field>
+        <Field label={t('price')}>
+          <Input
+            className="num"
+            inputMode="numeric"
+            value={f.price}
+            onChange={(e) => {
+              setF({ ...f, price: e.target.value });
+            }}
+          />
+        </Field>
         <Button
-          type="button"
-          disabled={create.isPending || !f.code || !f.nameUz}
+          icon={Plus}
+          loading={create.isPending}
+          disabled={!f.code || !f.nameUz}
           onClick={() => {
             create.mutate();
           }}
@@ -349,15 +368,14 @@ function ScheduleTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['schedules'] }),
   });
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <ErrorNote error={add.error ?? del.error} />
-      <Field label={c('doctor')}>
+      <Field label={c('doctor')} className="max-w-sm">
         <Select
           value={doctorId}
           onChange={(e) => {
             setDoctorId(e.target.value);
           }}
-          className="max-w-sm"
         >
           <option value="">—</option>
           {doctors.data?.map((d) => (
@@ -368,44 +386,61 @@ function ScheduleTab() {
         </Select>
       </Field>
       {doctorId && (
-        <>
-          <ul className="max-w-md divide-y divide-border">
-            {rows.data?.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 py-2">
-                <span className="w-28">{t(`wd.${String(r.weekday)}`)}</span>
-                <span className="flex-1">
-                  {r.startTime}–{r.endTime} ({r.slotMinutes}′)
-                </span>
-                <button
-                  type="button"
-                  className="underline"
-                  onClick={() => {
-                    del.mutate(r.id);
-                  }}
-                >
-                  {c('delete')}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+          <Card flush>
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>{t('weekday')}</th>
+                  <th>{c('time')}</th>
+                  <th>{t('slotMinutes')}</th>
+                  <th className="r">{c('actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.data?.map((r) => (
+                  <tr key={r.id}>
+                    <td>{t(`wd.${String(r.weekday)}`)}</td>
+                    <td className="num">
+                      {r.startTime}–{r.endTime}
+                    </td>
+                    <td className="num">{r.slotMinutes}′</td>
+                    <td className="r">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={Trash2}
+                        onClick={() => {
+                          del.mutate(r.id);
+                        }}
+                      >
+                        {c('delete')}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
           <Card title={t('addHours')}>
-            <div className="grid max-w-3xl gap-3 sm:grid-cols-4">
-              <Field label={t('weekday')}>
-                <Select
-                  value={f.weekday}
-                  onChange={(e) => {
-                    setF({ ...f, weekday: Number(e.target.value) });
-                  }}
-                >
-                  {WEEKDAYS.map((w) => (
-                    <option key={w} value={w}>
-                      {t(`wd.${String(w)}`)}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+            <Field label={t('weekday')}>
+              <Select
+                value={f.weekday}
+                onChange={(e) => {
+                  setF({ ...f, weekday: Number(e.target.value) });
+                }}
+              >
+                {WEEKDAYS.map((w) => (
+                  <option key={w} value={w}>
+                    {t(`wd.${String(w)}`)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
               <Field label={c('from')}>
                 <Input
+                  className="num"
                   type="time"
                   value={f.startTime}
                   onChange={(e) => {
@@ -415,6 +450,7 @@ function ScheduleTab() {
               </Field>
               <Field label={c('to')}>
                 <Input
+                  className="num"
                   type="time"
                   value={f.endTime}
                   onChange={(e) => {
@@ -422,19 +458,20 @@ function ScheduleTab() {
                   }}
                 />
               </Field>
-              <Field label={t('slotMinutes')}>
-                <Input
-                  inputMode="numeric"
-                  value={f.slotMinutes}
-                  onChange={(e) => {
-                    setF({ ...f, slotMinutes: Number(e.target.value) || 30 });
-                  }}
-                />
-              </Field>
             </div>
+            <Field label={t('slotMinutes')}>
+              <Input
+                className="num"
+                inputMode="numeric"
+                value={f.slotMinutes}
+                onChange={(e) => {
+                  setF({ ...f, slotMinutes: Number(e.target.value) || 30 });
+                }}
+              />
+            </Field>
             <Button
-              type="button"
-              disabled={add.isPending}
+              icon={Plus}
+              loading={add.isPending}
               onClick={() => {
                 add.mutate();
               }}
@@ -442,7 +479,7 @@ function ScheduleTab() {
               {c('add')}
             </Button>
           </Card>
-        </>
+        </div>
       )}
     </div>
   );
@@ -487,13 +524,14 @@ function ClinicTab() {
     },
   });
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <ErrorNote error={save.error ?? addBranch.error} />
-      <Card title={t('clinicData')}>
-        <div className="grid max-w-3xl gap-3 sm:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <Card title={t('clinicData')}>
           {(['name', 'phone', 'address', 'licenseNumber'] as const).map((k) => (
             <Field key={k} label={t(`cl.${k}`)}>
               <Input
+                className={k === 'phone' || k === 'licenseNumber' ? 'num' : undefined}
                 value={val(k)}
                 onChange={(e) => {
                   setF({ ...f, [k]: e.target.value });
@@ -501,42 +539,46 @@ function ClinicTab() {
               />
             </Field>
           ))}
-        </div>
-        <Button
-          type="button"
-          disabled={save.isPending}
-          onClick={() => {
-            save.mutate();
-          }}
-        >
-          {c('save')}
-        </Button>
-      </Card>
-      <Card title={t('branches')}>
-        <ul>
-          {branches.data?.map((b) => (
-            <li key={b.id}>{b.name}</li>
-          ))}
-        </ul>
-        <div className="flex max-w-md gap-2">
-          <Input
-            value={branchName}
-            placeholder={t('branchName')}
-            onChange={(e) => {
-              setBranchName(e.target.value);
-            }}
-          />
           <Button
-            type="button"
-            disabled={!branchName.trim() || addBranch.isPending}
+            icon={Save}
+            loading={save.isPending}
             onClick={() => {
-              addBranch.mutate();
+              save.mutate();
             }}
           >
-            {c('add')}
+            {c('save')}
           </Button>
-        </div>
-      </Card>
+        </Card>
+        <Card title={t('branches')}>
+          <ul className="divide-y divide-line rounded-control border border-line">
+            {branches.data?.map((b) => (
+              <li key={b.id} className="px-3 py-2 text-[15px]">
+                {b.name}
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-2">
+            <Input
+              aria-label={t('branchName')}
+              value={branchName}
+              placeholder={t('branchName')}
+              onChange={(e) => {
+                setBranchName(e.target.value);
+              }}
+            />
+            <Button
+              icon={Plus}
+              loading={addBranch.isPending}
+              disabled={!branchName.trim()}
+              onClick={() => {
+                addBranch.mutate();
+              }}
+            >
+              {c('add')}
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -554,26 +596,15 @@ export default function SettingsPage() {
         : can('settings:manage'),
   );
   const active = allowed.includes(tab) ? tab : allowed[0];
-  if (!active) return <p>{c('noAccess')}</p>;
+  if (!active) return <p className="text-ink-2">{c('noAccess')}</p>;
   return (
-    <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
-      <div role="tablist" className="flex gap-2 border-b border-border">
-        {allowed.map((x) => (
-          <button
-            key={x}
-            type="button"
-            role="tab"
-            aria-selected={active === x}
-            className="px-4 py-2 aria-selected:border-b-2 aria-selected:border-primary aria-selected:font-semibold"
-            onClick={() => {
-              setTab(x);
-            }}
-          >
-            {t(`tab.${x}`)}
-          </button>
-        ))}
-      </div>
+    <section>
+      <PageHeader title={t('title')} />
+      <Tabs
+        tabs={allowed.map((x) => ({ id: x, label: t(`tab.${x}`) }))}
+        value={active}
+        onChange={setTab}
+      />
       {active === 'staff' && <StaffTab />}
       {active === 'catalog' && <CatalogTab />}
       {active === 'schedule' && <ScheduleTab />}

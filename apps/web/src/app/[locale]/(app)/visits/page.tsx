@@ -1,9 +1,11 @@
 'use client';
 
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { CheckCheck, ClipboardList, FilePenLine, Play } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { Badge, Card, ErrorNote } from '@/components/ui/form';
+import { Card, ErrorNote, Status } from '@/components/ui/form';
+import { EmptyState, PageHeader } from '@/components/ui/page';
 import { Link, useRouter } from '@/i18n/navigation';
 import { api } from '@/lib/api';
 import { fmtDateTime, fmtTime, today } from '@/lib/format';
@@ -58,31 +60,31 @@ export default function VisitsPage() {
       router.push(`/visits/${e.id}`);
     },
   });
+  const list =
+    todayAppts.data?.items.filter((a) => !['CANCELLED', 'NO_SHOW'].includes(a.status)) ?? [];
 
   return (
-    <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+    <section className="space-y-4">
+      <PageHeader title={t('title')} sub={isDoctor ? user?.fullName : undefined} />
       <ErrorNote error={todayAppts.error ?? recent.error ?? start.error} />
 
       {isDoctor && (
-        <Card title={`${t('today')} — ${user?.fullName ?? ''}`}>
-          <ul className="divide-y divide-border">
-            {todayAppts.data?.items
-              .filter((a) => !['CANCELLED', 'NO_SHOW'].includes(a.status))
-              .map((a) => (
-                <li key={a.id} className="flex items-center gap-4 py-2">
-                  <span className="w-16 font-medium">{fmtTime(a.startsAt)}</span>
-                  <span className="flex-1">{a.patientName}</span>
-                  <Badge
-                    tone={
-                      a.status === 'ARRIVED' ? 'amber' : a.status === 'COMPLETED' ? 'green' : 'blue'
-                    }
-                  >
+        <Card title={t('today')} flush>
+          <ul className="divide-y divide-line">
+            {list.map((a) => (
+              <li key={a.id} className="flex items-center gap-4 px-4 py-2.5">
+                <span className="num w-14 text-[15px] font-medium">{fmtTime(a.startsAt)}</span>
+                <span className="flex-1 text-[15px]">{a.patientName}</span>
+                {a.status === 'COMPLETED' ? (
+                  <Status tone="ok" icon={CheckCheck}>
                     {a.status}
-                  </Badge>
-                  {a.status !== 'COMPLETED' && (
+                  </Status>
+                ) : (
+                  <>
+                    <Status tone={a.status === 'ARRIVED' ? 'warn' : 'info'}>{a.status}</Status>
                     <Button
-                      type="button"
+                      size="sm"
+                      icon={Play}
                       disabled={start.isPending}
                       onClick={() => {
                         start.mutate(a);
@@ -90,42 +92,46 @@ export default function VisitsPage() {
                     >
                       {t('start')}
                     </Button>
-                  )}
-                </li>
-              ))}
+                  </>
+                )}
+              </li>
+            ))}
           </ul>
-          {todayAppts.data?.items.length === 0 && <p>{c('empty')}</p>}
+          {list.length === 0 && <EmptyState icon={ClipboardList}>{c('empty')}</EmptyState>}
         </Card>
       )}
 
-      <Card title={t('recent')}>
-        <table className="w-full border-collapse text-left">
+      <Card title={t('recent')} flush>
+        <table className="tbl">
           <thead>
-            <tr className="border-b border-border">
-              <th className="py-2">{c('date')}</th>
+            <tr>
+              <th>{c('date')}</th>
               <th>{c('status')}</th>
-              <th />
+              <th className="r">{c('actions')}</th>
             </tr>
           </thead>
           <tbody>
             {recent.data?.items.map((e) => (
-              <tr key={e.id} className="border-b border-border">
-                <td className="py-2">{fmtDateTime(e.signedAt ?? e.startedAt)}</td>
+              <tr key={e.id}>
+                <td className="num">{fmtDateTime(e.signedAt ?? e.startedAt)}</td>
                 <td>
-                  <Badge tone={e.status === 'SIGNED' ? 'green' : 'amber'}>
+                  <Status
+                    tone={e.status === 'SIGNED' ? 'ok' : 'warn'}
+                    icon={e.status === 'SIGNED' ? CheckCheck : FilePenLine}
+                  >
                     {t(`status.${e.status}`)}
-                  </Badge>
+                  </Status>
                 </td>
-                <td>
-                  <Link className="underline" href={`/visits/${e.id}`}>
-                    {c('open')}
-                  </Link>
+                <td className="r">
+                  <Link href={`/visits/${e.id}`}>{c('open')}</Link>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {recent.data?.items.length === 0 && <p>{c('empty')}</p>}
+        {recent.data?.items.length === 0 && (
+          <EmptyState icon={ClipboardList}>{c('empty')}</EmptyState>
+        )}
       </Card>
     </section>
   );

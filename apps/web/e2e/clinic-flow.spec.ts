@@ -44,6 +44,7 @@ test('registrar registers a patient, books today and marks arrival (queue ticket
   await login(page, 'registrar');
 
   await page.getByRole('link', { name: 'Bemorlar' }).click();
+  await page.getByRole('button', { name: 'Yangi bemor' }).click();
   await page.getByLabel('Familiya').fill(LAST);
   await page.getByLabel('Ism', { exact: true }).fill('Aziz');
   await page.getByLabel("Tug'ilgan sana").last().fill('1990-05-01');
@@ -53,6 +54,7 @@ test('registrar registers a patient, books today and marks arrival (queue ticket
   await expect(page.getByRole('cell', { name: new RegExp(LAST) })).toBeVisible();
 
   await page.getByRole('link', { name: 'Kalendar' }).click();
+  await page.getByRole('button', { name: 'Yangi qabul' }).click();
   await page.getByLabel('Bemor').fill(LAST);
   await page
     .getByRole('button', { name: new RegExp(LAST) })
@@ -68,13 +70,12 @@ test('registrar registers a patient, books today and marks arrival (queue ticket
     .first()
     .click();
   await page.getByRole('button', { name: 'Yozish', exact: true }).click();
-  await expect(page.getByRole('cell', { name: new RegExp(LAST) })).toBeVisible();
+  const block = page.getByRole('button', { name: new RegExp(`${LAST}.*—`) });
+  await expect(block).toBeVisible();
 
   // arrival issues a queue ticket
-  await page
-    .getByRole('row', { name: new RegExp(LAST) })
-    .getByRole('button', { name: 'Keldi' })
-    .click();
+  await block.click();
+  await page.getByRole('button', { name: 'Keldi' }).click();
   await page.getByRole('link', { name: 'Navbat', exact: true }).click();
   await expect(page.getByRole('row', { name: new RegExp(LAST) })).toBeVisible();
   await expect(
@@ -133,7 +134,7 @@ test('cashier opens a shift, invoices the patient and takes a cash payment', asy
   await expect(page.getByRole('button', { name: 'To‘lov qabul qilish' })).toBeVisible();
   await page.getByPlaceholder(/\d/).first().fill('50000');
   await page.getByRole('button', { name: 'To‘lov qabul qilish' }).click();
-  await expect(page.getByRole('heading', { name: /— To‘langan/ })).toBeVisible();
+  await expect(page.getByRole('cell').getByText('To‘langan').first()).toBeVisible();
 });
 
 test('owner: language switch, reports and integration; cashier lacks reports', async ({

@@ -1,51 +1,207 @@
 @import 'tailwindcss';
 
-/* One color system, light theme first. Large readable type for front-desk staff. */
+/* IBM Plex Sans, self-hosted (Latin, Latin Extended for the Uzbek o‘ g‘ marks, Cyrillic). 400 / 500 / 600 only. */
+@import '@fontsource/ibm-plex-sans/latin-400.css';
+@import '@fontsource/ibm-plex-sans/latin-500.css';
+@import '@fontsource/ibm-plex-sans/latin-600.css';
+@import '@fontsource/ibm-plex-sans/latin-ext-400.css';
+@import '@fontsource/ibm-plex-sans/latin-ext-500.css';
+@import '@fontsource/ibm-plex-sans/latin-ext-600.css';
+@import '@fontsource/ibm-plex-sans/cyrillic-400.css';
+@import '@fontsource/ibm-plex-sans/cyrillic-500.css';
+@import '@fontsource/ibm-plex-sans/cyrillic-600.css';
+
+/* One light, solid-color system. No gradients anywhere. Status colors carry meaning only. */
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
-  --muted: #f3f4f6;
-  --muted-foreground: #4b5563;
-  --primary: #0f766e;
-  --primary-foreground: #ffffff;
-  --border: #d1d5db;
-  --ring: #0f766e;
+  --ink: #1f2a30;
+  --ink-2: #4c6272;
+  --line: #d8dde0;
+  --bg: #f6f8f9;
+  --surface: #ffffff;
+  --row-hover: #f1f4f5;
+
+  --primary: #0b6e69;
+  --primary-hover: #08524e;
+  --primary-soft: #e4f0ef;
+
+  --ok: #1e7b3a;
+  --ok-soft: #e7f2ea;
+  --ok-text: #176331;
+  --warn: #b26b00;
+  --warn-soft: #fbf1df;
+  --warn-text: #7a4a00;
+  --danger: #c2271e;
+  --danger-soft: #fbeae8;
+  --danger-text: #a81f17;
+  --info: #1f5fa8;
+  --info-soft: #e8f0f9;
+  --info-text: #1a4f8c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-line: var(--line);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-row-hover: var(--row-hover);
   --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-border: var(--border);
-  --color-ring: var(--ring);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-text: var(--ok-text);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-text: var(--warn-text);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-text: var(--danger-text);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-text: var(--info-text);
+  --radius-control: 6px;
+  --radius-card: 8px;
 }
 
 html {
-  font-size: 17px;
+  font-size: 14px;
+  background: var(--bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.45;
+  font-feature-settings: 'tnum' 0;
+  -webkit-font-smoothing: antialiased;
+  caret-color: var(--primary);
 }
 
+/* Browser surfaces themed from the palette. */
+::selection {
+  background: var(--primary-soft);
+  color: var(--ink);
+}
 :focus-visible {
-  outline: 3px solid var(--ring);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-offset: 0;
+  border-color: var(--primary);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+/* Layered so utility classes (text-white, text-ink, no-underline) always win over the default link look. */
+@layer base {
+  a {
+    color: var(--primary);
+    text-underline-offset: 3px;
+  }
+  a:hover {
+    color: var(--primary-hover);
+  }
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
-@media print {
-  nav,
-  .no-print {
-    display: none !important;
+/* Tabular numerals for every figure that is compared down a column or read as an identifier. */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+@layer components {
+  /* Dense data table: 13px, 40px rows, hairlines, sticky header. */
+  .tbl {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    text-align: left;
   }
+  .tbl th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-weight: 500;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .tbl td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    height: 44px;
+  }
+  .tbl tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .tbl tbody tr[data-clickable='true'] {
+    cursor: pointer;
+  }
+  .tbl tbody tr[data-clickable='true']:hover,
+  .tbl tbody tr[aria-selected='true'] {
+    background: var(--row-hover);
+  }
+  .tbl .r {
+    text-align: right;
+  }
+
+  .field-control {
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 0 10px;
+    font-size: 15px;
+    transition: border-color 120ms ease-out;
+  }
+  .field-control:hover:not(:disabled) {
+    border-color: #b7c0c5;
+  }
+  .field-control:disabled {
+    background: var(--bg);
+    color: var(--ink-2);
+  }
+  textarea.field-control {
+    height: auto;
+    min-height: 88px;
+    padding: 8px 10px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .field-control::placeholder {
+    color: #6b7c88;
+  }
+}
+
+select.field-control {
+  appearance: none;
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234c6272' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
 }

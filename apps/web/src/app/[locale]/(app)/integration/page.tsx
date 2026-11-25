@@ -1,11 +1,15 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CheckCircle2, PlugZap, RotateCw, Save, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, ErrorNote, Field, Input, Select, Status, type Tone } from '@/components/ui/form';
+import { EmptyState, KpiStrip, PageHeader, Toolbar } from '@/components/ui/page';
 import { api } from '@/lib/api';
 
-interface Status {
+interface DhpStatus {
   mode: string;
   reachable: boolean;
   dhpOrganizationId: string | null;
@@ -21,6 +25,13 @@ interface SyncRecord {
 }
 
 const STATUSES = ['PENDING', 'SENT', 'FAILED', 'DEAD', 'SKIPPED'] as const;
+const TONE: Record<SyncRecord['status'], Tone> = {
+  PENDING: 'info',
+  SENT: 'ok',
+  FAILED: 'warn',
+  DEAD: 'danger',
+  SKIPPED: 'neutral',
+};
 
 export default function IntegrationPage() {
   const t = useTranslations('integration');
@@ -30,7 +41,7 @@ export default function IntegrationPage() {
 
   const status = useQuery({
     queryKey: ['dhp-status'],
-    queryFn: () => api<Status>('/integrations/dhp/status'),
+    queryFn: () => api<DhpStatus>('/integrations/dhp/status'),
     refetchInterval: 10_000,
   });
   const records = useQuery({
@@ -54,63 +65,61 @@ export default function IntegrationPage() {
 
   const s = status.data;
   return (
-    <section className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
-      {(status.error || records.error) && <p role="alert">{t('loadError')}</p>}
+    <section>
+      <PageHeader title={t('title')}>
+        {s && (
+          <Status tone={s.reachable ? 'ok' : 'danger'} icon={s.reachable ? CheckCircle2 : XCircle}>
+            {t('reachable')}: {s.reachable ? t('yes') : t('no')}
+          </Status>
+        )}
+      </PageHeader>
+      {(status.error || records.error) && <ErrorNote error={new Error(t('loadError'))} />}
 
       {s && (
-        <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
-          <p>
-            {t('mode')}: <b>{s.mode}</b>
-          </p>
-          <p>
-            {t('reachable')}: <b>{s.reachable ? t('yes') : t('no')}</b>
-          </p>
-          <ul className="flex flex-wrap gap-3 sm:col-span-2">
-            {STATUSES.map((k) => (
-              <li key={k} className="rounded-md border border-border px-3 py-1">
-                {k}: <b>{s.counts[k] ?? 0}</b>
-              </li>
-            ))}
-          </ul>
-          <form
-            className="flex items-end gap-2 sm:col-span-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              save.mutate(org ?? s.dhpOrganizationId ?? '');
-            }}
-          >
-            <label className="flex-1">
-              <span className="mb-1 block">{t('orgId')}</span>
-              <input
-                value={org ?? s.dhpOrganizationId ?? ''}
-                onChange={(e) => {
-                  setOrg(e.target.value);
+        <>
+          <KpiStrip items={STATUSES.map((k) => ({ label: k, value: s.counts[k] ?? 0 }))} />
+          <div className="mb-4 grid gap-4 lg:grid-cols-2">
+            <Card title={t('mode')}>
+              <p className="num text-[15px] font-medium">{s.mode}</p>
+              <form
+                className="flex items-end gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  save.mutate(org ?? s.dhpOrganizationId ?? '');
                 }}
-                className="w-full rounded-md border border-border px-3 py-2"
-              />
-            </label>
-            <button
-              type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-            >
-              {t('save')}
-            </button>
-            {save.isSuccess && <span role="status">{t('saved')}</span>}
-          </form>
-        </div>
+              >
+                <Field label={t('orgId')} className="flex-1">
+                  <Input
+                    className="num"
+                    value={org ?? s.dhpOrganizationId ?? ''}
+                    onChange={(e) => {
+                      setOrg(e.target.value);
+                    }}
+                  />
+                </Field>
+                <Button type="submit" icon={Save} loading={save.isPending}>
+                  {t('save')}
+                </Button>
+              </form>
+              {save.isSuccess && (
+                <p role="status" className="flex items-center gap-1.5 text-[14px] text-ok-text">
+                  <CheckCircle2 size={16} aria-hidden />
+                  {t('saved')}
+                </p>
+              )}
+            </Card>
+          </div>
+        </>
       )}
 
-      <div className="space-y-3">
-        <h2 className="text-xl font-semibold">{t('records')}</h2>
-        <label className="block max-w-xs">
-          <span className="mb-1 block">{t('status')}</span>
-          <select
+      <h2 className="mb-2 text-[16px] font-semibold">{t('records')}</h2>
+      <Toolbar>
+        <Field label={t('status')} className="w-48">
+          <Select
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
             }}
-            className="w-full rounded-md border border-border px-3 py-2"
           >
             <option value="">{t('all')}</option>
             {STATUSES.map((k) => (
@@ -118,46 +127,51 @@ export default function IntegrationPage() {
                 {k}
               </option>
             ))}
-          </select>
-        </label>
-        <table className="w-full border-collapse text-left">
+          </Select>
+        </Field>
+      </Toolbar>
+      <Card flush>
+        <table className="tbl">
           <thead>
-            <tr className="border-b border-border">
-              <th className="py-2">{t('entity')}</th>
+            <tr>
+              <th>{t('entity')}</th>
               <th>{t('status')}</th>
-              <th>{t('attempts')}</th>
+              <th className="r">{t('attempts')}</th>
               <th>{t('error')}</th>
-              <th />
+              <th className="r" />
             </tr>
           </thead>
           <tbody>
             {records.data?.items.map((r) => (
-              <tr key={r.id} className="border-b border-border">
-                <td className="py-2">
-                  {r.entityType} {r.entityId.slice(0, 8)}
-                </td>
-                <td>{r.status}</td>
-                <td>{r.attempts}</td>
-                <td className="max-w-xs truncate">{r.lastError ?? '—'}</td>
+              <tr key={r.id}>
                 <td>
+                  {r.entityType} <span className="num text-ink-2">{r.entityId.slice(0, 8)}</span>
+                </td>
+                <td>
+                  <Status tone={TONE[r.status]}>{r.status}</Status>
+                </td>
+                <td className="r num">{r.attempts}</td>
+                <td className="max-w-xs truncate text-ink-2">{r.lastError ?? '—'}</td>
+                <td className="r">
                   {(r.status === 'FAILED' || r.status === 'DEAD') && (
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={RotateCw}
                       onClick={() => {
                         retry.mutate(r.id);
                       }}
-                      className="rounded-md border border-border px-3 py-1"
                     >
                       {t('retry')}
-                    </button>
+                    </Button>
                   )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {records.data?.items.length === 0 && <p>{t('empty')}</p>}
-      </div>
+        {records.data?.items.length === 0 && <EmptyState icon={PlugZap}>{t('empty')}</EmptyState>}
+      </Card>
     </section>
   );
 }

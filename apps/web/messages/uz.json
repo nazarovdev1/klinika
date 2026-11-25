@@ -135,7 +135,9 @@
     "debts": "Qarzdorlik",
     "quickBook": "Qabulga yozish",
     "quickPatient": "Yangi bemor",
-    "quickVisits": "Mening qabullarim"
+    "quickVisits": "Mening qabullarim",
+    "revenue14": "Tushum, so‘nggi 14 kun (so‘m)",
+    "visits14": "Qabullar, so‘nggi 14 kun"
   },
   "calendar": {
     "title": "Kalendar",
@@ -156,7 +158,8 @@
       "COMPLETED": "Yakunlandi",
       "CANCELLED": "Bekor qilindi",
       "NO_SHOW": "Kelmadi"
-    }
+    },
+    "todayBtn": "Bugun"
   },
   "queue": {
     "title": "Navbat",
