@@ -39,7 +39,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
-      <nav aria-label="main" className="flex w-60 shrink-0 flex-col border-r border-border bg-muted p-4">
+      <nav
+        aria-label="main"
+        className="flex w-60 shrink-0 flex-col border-r border-border bg-muted p-4"
+      >
         <ul className="flex-1 space-y-1">
           {NAV.filter(([, , perms]) => perms.length === 0 || perms.some((p) => can(p))).map(
             ([key, href]) => (

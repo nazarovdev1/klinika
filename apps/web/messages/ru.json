@@ -40,7 +40,27 @@
     "birthDate": "Дата рождения",
     "phone": "Телефон",
     "pinfl": "ПИНФЛ",
-    "empty": "Пациенты не найдены"
+    "empty": "Пациенты не найдены",
+    "consents": "Согласия",
+    "consent": {
+      "DATA_PROCESSING": "Обработка данных",
+      "DHP_SHARING": "Передача в DHP",
+      "SMS": "SMS-уведомления"
+    },
+    "telegramLink": "Привязать Telegram",
+    "telegramCode": "Пациент отправляет боту",
+    "newPatient": "Новый пациент",
+    "lastName": "Фамилия",
+    "firstName": "Имя",
+    "middleName": "Отчество",
+    "sex": "Пол",
+    "male": "Мужской",
+    "female": "Женский",
+    "passport": "Паспорт",
+    "allergies": "Аллергии",
+    "dupHard": "Пациент с таким ПИНФЛ уже существует",
+    "dupSoft": "Найден похожий пациент (имя, дата рождения, телефон). Проверьте.",
+    "createAnyway": "Всё равно создать"
   },
   "integration": {
     "title": "Интеграция с DHP",
@@ -106,5 +126,249 @@
     "next": "Новый пароль (от 10 символов, буквы и цифры)",
     "submit": "Изменить",
     "failed": "Не удалось изменить пароль"
+  },
+  "dashboard": {
+    "hello": "Здравствуйте, {name}",
+    "appointmentsToday": "Приёмов сегодня",
+    "arrived": "Пришли / на приёме",
+    "revenueToday": "Выручка сегодня",
+    "debts": "Задолженность",
+    "quickBook": "Записать на приём",
+    "quickPatient": "Новый пациент",
+    "quickVisits": "Мои приёмы"
+  },
+  "calendar": {
+    "title": "Календарь",
+    "allDoctors": "Все врачи",
+    "newAppointment": "Новая запись",
+    "reschedule": "Перенести",
+    "freeSlots": "Свободное время",
+    "noSlots": "Нет свободного времени",
+    "pickSlot": "Выберите время",
+    "pickPatient": "Выберите пациента",
+    "slotTaken": "Это время уже занято",
+    "book": "Записать",
+    "status": {
+      "BOOKED": "Записан",
+      "CONFIRMED": "Подтверждён",
+      "ARRIVED": "Пришёл",
+      "IN_PROGRESS": "На приёме",
+      "COMPLETED": "Завершён",
+      "CANCELLED": "Отменён",
+      "NO_SHOW": "Не пришёл"
+    }
+  },
+  "queue": {
+    "title": "Очередь",
+    "cabinet": "Кабинет",
+    "callNext": "Вызвать следующего",
+    "screenLink": "Ссылка на экран",
+    "issue": "Выдать талон",
+    "issueButton": "Выдать талон",
+    "status": {
+      "WAITING": "Ожидает",
+      "CALLED": "Вызван",
+      "IN_SERVICE": "На приёме",
+      "DONE": "Завершён",
+      "SKIPPED": "Пропущен"
+    }
+  },
+  "visits": {
+    "title": "Приёмы",
+    "today": "Сегодня",
+    "recent": "Последние приёмы",
+    "start": "Начать",
+    "status": {
+      "OPEN": "Открыт",
+      "SIGNED": "Подписан",
+      "CANCELLED": "Отменён"
+    }
+  },
+  "encounter": {
+    "title": "Приём",
+    "status": {
+      "OPEN": "Открыт",
+      "SIGNED": "Подписан",
+      "CANCELLED": "Отменён"
+    },
+    "allergies": "Аллергия",
+    "vitals": "Витальные показатели",
+    "saveVitals": "Сохранить показатели",
+    "v": {
+      "temperature": "Темп. °C",
+      "systolic": "Систол.",
+      "diastolic": "Диастол.",
+      "pulse": "Пульс",
+      "spo2": "SpO₂ %",
+      "weightKg": "Вес кг",
+      "heightCm": "Рост см"
+    },
+    "f": {
+      "complaints": "Жалобы",
+      "anamnesis": "Анамнез",
+      "objectiveStatus": "Объективный статус",
+      "conclusion": "Заключение",
+      "recommendations": "Рекомендации"
+    },
+    "diagnoses": "Диагнозы (МКБ-10)",
+    "icdSearch": "Поиск по коду или названию",
+    "dx": {
+      "PRIMARY": "Основной",
+      "SECONDARY": "Сопутствующий",
+      "COMPLICATION": "Осложнение"
+    },
+    "prescriptions": "Назначения",
+    "rx": {
+      "drug": "Препарат",
+      "dosage": "Дозировка",
+      "frequency": "Приём",
+      "days": "Дней"
+    },
+    "sign": "Подписать",
+    "signedAt": "Подписан: {date}",
+    "addendum": "Дополнение",
+    "addAddendum": "Добавить дополнение",
+    "history": "Предыдущие приёмы"
+  },
+  "billing": {
+    "title": "Платежи",
+    "shift": "Кассовая смена",
+    "shiftOpen": "Смена открыта, начальная сумма",
+    "openShift": "Открыть смену",
+    "closeShift": "Закрыть смену",
+    "openingFloat": "Начальная сумма",
+    "counted": "Подсчитанная наличность",
+    "balance": "Остаток",
+    "paid": "Оплачено",
+    "issue": "Выставить счёт",
+    "void": "Аннулировать",
+    "method": "Способ",
+    "takePayment": "Принять оплату",
+    "refunded": "Возвращено",
+    "receipt": "Квитанция",
+    "refund": "Вернуть",
+    "refundReason": "Причина возврата",
+    "newInvoice": "Новый счёт",
+    "customItem": "Другая позиция",
+    "m": {
+      "CASH": "Наличные",
+      "CARD": "Карта",
+      "CLICK": "Click",
+      "PAYME": "Payme",
+      "UZUM": "Uzum"
+    },
+    "status": {
+      "DRAFT": "Черновик",
+      "ISSUED": "Выставлен",
+      "PARTIAL": "Частично",
+      "PAID": "Оплачен",
+      "VOID": "Аннулирован"
+    }
+  },
+  "lab": {
+    "title": "Лаборатория",
+    "barcode": "Штрихкод",
+    "test": "Исследование",
+    "result": "Результат",
+    "ref": "Норма",
+    "collect": "Образец взят",
+    "saveResults": "Сохранить результаты",
+    "validate": "Подтвердить",
+    "newOrder": "Новое направление",
+    "status": {
+      "ORDERED": "Назначено",
+      "COLLECTED": "Образец взят",
+      "RESULTED": "Результат внесён",
+      "VALIDATED": "Подтверждено",
+      "CANCELLED": "Отменено"
+    }
+  },
+  "reports": {
+    "title": "Отчёты",
+    "report": "Отчёт",
+    "exportCsv": "Скачать CSV",
+    "r": {
+      "revenue": "Выручка",
+      "revenue-by-doctor": "Выручка по врачам",
+      "services": "Услуги",
+      "visits": "Количество приёмов",
+      "appointments": "Записи (неявки)",
+      "debts": "Задолженность",
+      "cash-shifts": "Кассовые смены"
+    },
+    "col": {
+      "date": "Дата",
+      "method": "Способ",
+      "received": "Принято",
+      "refunded": "Возвращено",
+      "net": "Чистая",
+      "doctorId": "ID",
+      "doctor": "Врач",
+      "invoices": "Счета",
+      "service": "Услуга",
+      "qty": "Кол-во",
+      "total": "Итого",
+      "visits": "Приёмы",
+      "status": "Статус",
+      "count": "Кол-во",
+      "noShowRatePercent": "Неявки %",
+      "number": "Номер",
+      "patientId": "ID пациента",
+      "issuedOn": "Дата",
+      "ageDays": "Дней",
+      "paid": "Оплачено",
+      "balance": "Остаток",
+      "shiftId": "Смена",
+      "cashier": "Кассир",
+      "closedOn": "Закрыта",
+      "openingFloat": "Начальная",
+      "expectedCash": "Ожидалось",
+      "countedCash": "Подсчитано",
+      "difference": "Разница"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "tab": {
+      "staff": "Сотрудники",
+      "catalog": "Услуги и цены",
+      "schedule": "График работы",
+      "clinic": "Клиника"
+    },
+    "fullName": "Ф.И.О.",
+    "phone": "Телефон",
+    "login": "Логин",
+    "role": "Роль",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "activate": "Включить",
+    "deactivate": "Отключить",
+    "newStaff": "Новый сотрудник",
+    "tempPassword": "Временный пароль",
+    "specialty": "Специальность",
+    "code": "Код",
+    "price": "Цена",
+    "newService": "Новая услуга",
+    "addHours": "Добавить часы работы",
+    "weekday": "День недели",
+    "slotMinutes": "Слот (мин.)",
+    "wd": {
+      "1": "Понедельник",
+      "2": "Вторник",
+      "3": "Среда",
+      "4": "Четверг",
+      "5": "Пятница",
+      "6": "Суббота",
+      "7": "Воскресенье"
+    },
+    "clinicData": "Данные клиники",
+    "cl": {
+      "name": "Название",
+      "phone": "Телефон",
+      "address": "Адрес",
+      "licenseNumber": "Номер лицензии"
+    },
+    "branches": "Филиалы",
+    "branchName": "Название филиала"
   }
 }

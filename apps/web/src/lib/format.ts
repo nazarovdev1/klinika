@@ -16,9 +16,11 @@ export const fmtTime = (iso: string, tz = 'Asia/Tashkent'): string =>
 
 export const fmtDateTime = (iso: string | null | undefined, tz = 'Asia/Tashkent'): string =>
   iso
-    ? new Intl.DateTimeFormat('ru-RU', { timeZone: tz, dateStyle: 'short', timeStyle: 'short' }).format(
-        new Date(iso),
-      )
+    ? new Intl.DateTimeFormat('ru-RU', {
+        timeZone: tz,
+        dateStyle: 'short',
+        timeStyle: 'short',
+      }).format(new Date(iso))
     : '—';
 
 /** Today as YYYY-MM-DD in the clinic time zone. */

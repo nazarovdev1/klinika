@@ -22,7 +22,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // The access token lives in memory only; on reload the httpOnly refresh cookie restores the session.
   useEffect(() => {
     let alive = true;
-    fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
+    void fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
       .then(async (res) => {
         if (!res.ok) return null;
         const data = (await res.json()) as TokenResponse;

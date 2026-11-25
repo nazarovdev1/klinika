@@ -2,6 +2,7 @@ import type { Db, TenantClient } from '@shifo/db';
 import { recordAudit } from '../../core/audit.js';
 import type { AuthContext } from '../../core/context.js';
 import { AppError } from '../../core/errors.js';
+import { patientNames } from '../../core/patient-names.js';
 import { rooms, type Realtime } from '../../core/realtime.js';
 import { callText } from '../../core/screen.js';
 import { todayIn } from '../../core/time.js';
@@ -113,7 +114,13 @@ export function queueService(db: Db, realtime: Realtime) {
         },
         orderBy: { number: 'asc' },
       });
-      return { items: tickets.map(ticketDto) };
+      const names = await patientNames(
+        t,
+        tickets.map((x) => x.patientId),
+      );
+      return {
+        items: tickets.map((x) => ({ ...ticketDto(x), patientName: names.get(x.patientId) ?? '' })),
+      };
     },
 
     /** Doctor (or registrar) calls the next waiting ticket. Safe against two callers racing for one ticket. */

@@ -24,7 +24,15 @@ export function Select({ className, children, ...p }: SelectHTMLAttributes<HTMLS
   );
 }
 
-export function Card({ title, children, className }: { title?: string; children: ReactNode; className?: string }) {
+export function Card({
+  title,
+  children,
+  className,
+}: {
+  title?: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <section className={cn('space-y-3 rounded-lg border border-border p-4', className)}>
       {title && <h2 className="text-lg font-semibold">{title}</h2>}
@@ -35,7 +43,7 @@ export function Card({ title, children, className }: { title?: string; children:
 
 export function ErrorNote({ error }: { error: unknown }) {
   if (!error) return null;
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = error instanceof Error ? error.message : 'Error';
   return (
     <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-red-800">
       {msg}
@@ -43,7 +51,13 @@ export function ErrorNote({ error }: { error: unknown }) {
   );
 }
 
-export function Badge({ children, tone = 'gray' }: { children: ReactNode; tone?: 'gray' | 'green' | 'red' | 'amber' | 'blue' }) {
+export function Badge({
+  children,
+  tone = 'gray',
+}: {
+  children: ReactNode;
+  tone?: 'gray' | 'green' | 'red' | 'amber' | 'blue';
+}) {
   const tones = {
     gray: 'bg-muted text-foreground',
     green: 'bg-green-100 text-green-900',

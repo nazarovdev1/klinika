@@ -40,7 +40,27 @@
     "birthDate": "Tug'ilgan sana",
     "phone": "Telefon",
     "pinfl": "PINFL",
-    "empty": "Bemor topilmadi"
+    "empty": "Bemor topilmadi",
+    "consents": "Rozilik",
+    "consent": {
+      "DATA_PROCESSING": "Ma’lumotlarni qayta ishlash",
+      "DHP_SHARING": "DHP bilan almashish",
+      "SMS": "SMS xabarlar"
+    },
+    "telegramLink": "Telegram havolasi",
+    "telegramCode": "Bemor botga yuboradi",
+    "newPatient": "Yangi bemor",
+    "lastName": "Familiya",
+    "firstName": "Ism",
+    "middleName": "Otasining ismi",
+    "sex": "Jins",
+    "male": "Erkak",
+    "female": "Ayol",
+    "passport": "Pasport",
+    "allergies": "Allergiya",
+    "dupHard": "Bu PINFL bilan bemor allaqachon mavjud",
+    "dupSoft": "O‘xshash bemor topildi (ism, tug‘ilgan sana, telefon). Tekshiring.",
+    "createAnyway": "Baribir yaratish"
   },
   "integration": {
     "title": "DHP integratsiyasi",
@@ -106,5 +126,249 @@
     "next": "Yangi parol (kamida 10 belgi, harf va raqam)",
     "submit": "O‘zgartirish",
     "failed": "Parolni o‘zgartirib bo‘lmadi"
+  },
+  "dashboard": {
+    "hello": "Salom, {name}",
+    "appointmentsToday": "Bugungi qabullar",
+    "arrived": "Kelganlar / jarayonda",
+    "revenueToday": "Bugungi tushum",
+    "debts": "Qarzdorlik",
+    "quickBook": "Qabulga yozish",
+    "quickPatient": "Yangi bemor",
+    "quickVisits": "Mening qabullarim"
+  },
+  "calendar": {
+    "title": "Kalendar",
+    "allDoctors": "Barcha shifokorlar",
+    "newAppointment": "Yangi qabul",
+    "reschedule": "Ko‘chirish",
+    "freeSlots": "Bo‘sh vaqtlar",
+    "noSlots": "Bo‘sh vaqt yo‘q",
+    "pickSlot": "Vaqtni tanlang",
+    "pickPatient": "Bemorni tanlang",
+    "slotTaken": "Bu vaqt band qilingan",
+    "book": "Yozish",
+    "status": {
+      "BOOKED": "Yozilgan",
+      "CONFIRMED": "Tasdiqlangan",
+      "ARRIVED": "Keldi",
+      "IN_PROGRESS": "Qabulda",
+      "COMPLETED": "Yakunlandi",
+      "CANCELLED": "Bekor qilindi",
+      "NO_SHOW": "Kelmadi"
+    }
+  },
+  "queue": {
+    "title": "Navbat",
+    "cabinet": "Kabinet",
+    "callNext": "Keyingisini chaqirish",
+    "screenLink": "Ekran havolasi",
+    "issue": "Talon berish",
+    "issueButton": "Talon berish",
+    "status": {
+      "WAITING": "Kutmoqda",
+      "CALLED": "Chaqirildi",
+      "IN_SERVICE": "Qabulda",
+      "DONE": "Tugadi",
+      "SKIPPED": "O‘tkazib yuborildi"
+    }
+  },
+  "visits": {
+    "title": "Qabullar",
+    "today": "Bugun",
+    "recent": "So‘nggi qabullar",
+    "start": "Boshlash",
+    "status": {
+      "OPEN": "Ochiq",
+      "SIGNED": "Imzolangan",
+      "CANCELLED": "Bekor"
+    }
+  },
+  "encounter": {
+    "title": "Qabul",
+    "status": {
+      "OPEN": "Ochiq",
+      "SIGNED": "Imzolangan",
+      "CANCELLED": "Bekor"
+    },
+    "allergies": "Allergiya",
+    "vitals": "Hayotiy ko‘rsatkichlar",
+    "saveVitals": "Ko‘rsatkichlarni saqlash",
+    "v": {
+      "temperature": "Harorat °C",
+      "systolic": "Sistolik",
+      "diastolic": "Diastolik",
+      "pulse": "Puls",
+      "spo2": "SpO₂ %",
+      "weightKg": "Vazn kg",
+      "heightCm": "Bo‘y sm"
+    },
+    "f": {
+      "complaints": "Shikoyatlar",
+      "anamnesis": "Anamnez",
+      "objectiveStatus": "Ob’ektiv holat",
+      "conclusion": "Xulosa",
+      "recommendations": "Tavsiyalar"
+    },
+    "diagnoses": "Tashxislar (MKB-10)",
+    "icdSearch": "Kod yoki nom bo‘yicha qidirish",
+    "dx": {
+      "PRIMARY": "Asosiy",
+      "SECONDARY": "Qo‘shimcha",
+      "COMPLICATION": "Asorat"
+    },
+    "prescriptions": "Dori-darmonlar",
+    "rx": {
+      "drug": "Dori nomi",
+      "dosage": "Doza",
+      "frequency": "Qabul qilish",
+      "days": "Kun"
+    },
+    "sign": "Imzolash",
+    "signedAt": "Imzolangan: {date}",
+    "addendum": "Qo‘shimcha yozuv",
+    "addAddendum": "Qo‘shimcha qo‘shish",
+    "history": "Oldingi qabullar"
+  },
+  "billing": {
+    "title": "To‘lovlar",
+    "shift": "Kassa smenasi",
+    "shiftOpen": "Smena ochiq, boshlang‘ich",
+    "openShift": "Smenani ochish",
+    "closeShift": "Smenani yopish",
+    "openingFloat": "Boshlang‘ich summa",
+    "counted": "Sanalgan naqd pul",
+    "balance": "Qoldiq",
+    "paid": "To‘langan",
+    "issue": "Hisob-faktura chiqarish",
+    "void": "Bekor qilish",
+    "method": "Usul",
+    "takePayment": "To‘lov qabul qilish",
+    "refunded": "Qaytarilgan",
+    "receipt": "Kvitansiya",
+    "refund": "Qaytarish",
+    "refundReason": "Qaytarish sababi",
+    "newInvoice": "Yangi hisob-faktura",
+    "customItem": "Boshqa xizmat nomi",
+    "m": {
+      "CASH": "Naqd",
+      "CARD": "Karta",
+      "CLICK": "Click",
+      "PAYME": "Payme",
+      "UZUM": "Uzum"
+    },
+    "status": {
+      "DRAFT": "Qoralama",
+      "ISSUED": "Chiqarilgan",
+      "PARTIAL": "Qisman",
+      "PAID": "To‘langan",
+      "VOID": "Bekor"
+    }
+  },
+  "lab": {
+    "title": "Laboratoriya",
+    "barcode": "Shtrix-kod",
+    "test": "Tahlil",
+    "result": "Natija",
+    "ref": "Me’yor",
+    "collect": "Namuna olindi",
+    "saveResults": "Natijalarni saqlash",
+    "validate": "Tasdiqlash",
+    "newOrder": "Yangi buyurtma",
+    "status": {
+      "ORDERED": "Buyurtma",
+      "COLLECTED": "Namuna olingan",
+      "RESULTED": "Natija kiritilgan",
+      "VALIDATED": "Tasdiqlangan",
+      "CANCELLED": "Bekor"
+    }
+  },
+  "reports": {
+    "title": "Hisobotlar",
+    "report": "Hisobot",
+    "exportCsv": "CSV yuklab olish",
+    "r": {
+      "revenue": "Tushum",
+      "revenue-by-doctor": "Shifokorlar bo‘yicha tushum",
+      "services": "Xizmatlar",
+      "visits": "Qabullar soni",
+      "appointments": "Yozuvlar (kelmaganlar)",
+      "debts": "Qarzdorlik",
+      "cash-shifts": "Kassa smenalari"
+    },
+    "col": {
+      "date": "Sana",
+      "method": "Usul",
+      "received": "Qabul qilingan",
+      "refunded": "Qaytarilgan",
+      "net": "Sof",
+      "doctorId": "ID",
+      "doctor": "Shifokor",
+      "invoices": "Hisoblar",
+      "service": "Xizmat",
+      "qty": "Soni",
+      "total": "Jami",
+      "visits": "Qabullar",
+      "status": "Holat",
+      "count": "Soni",
+      "noShowRatePercent": "Kelmaganlar %",
+      "number": "Raqam",
+      "patientId": "Bemor ID",
+      "issuedOn": "Sana",
+      "ageDays": "Kun",
+      "paid": "To‘langan",
+      "balance": "Qoldiq",
+      "shiftId": "Smena",
+      "cashier": "Kassir",
+      "closedOn": "Yopilgan",
+      "openingFloat": "Boshlang‘ich",
+      "expectedCash": "Kutilgan",
+      "countedCash": "Sanalgan",
+      "difference": "Farq"
+    }
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "tab": {
+      "staff": "Xodimlar",
+      "catalog": "Xizmatlar va narxlar",
+      "schedule": "Ish jadvali",
+      "clinic": "Klinika"
+    },
+    "fullName": "F.I.Sh.",
+    "phone": "Telefon",
+    "login": "Login",
+    "role": "Rol",
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "activate": "Faollashtirish",
+    "deactivate": "O‘chirish",
+    "newStaff": "Yangi xodim",
+    "tempPassword": "Vaqtinchalik parol",
+    "specialty": "Mutaxassislik",
+    "code": "Kod",
+    "price": "Narx",
+    "newService": "Yangi xizmat",
+    "addHours": "Ish vaqtini qo‘shish",
+    "weekday": "Hafta kuni",
+    "slotMinutes": "Slot (daq.)",
+    "wd": {
+      "1": "Dushanba",
+      "2": "Seshanba",
+      "3": "Chorshanba",
+      "4": "Payshanba",
+      "5": "Juma",
+      "6": "Shanba",
+      "7": "Yakshanba"
+    },
+    "clinicData": "Klinika ma’lumotlari",
+    "cl": {
+      "name": "Nomi",
+      "phone": "Telefon",
+      "address": "Manzil",
+      "licenseNumber": "Litsenziya raqami"
+    },
+    "branches": "Filiallar",
+    "branchName": "Filial nomi"
   }
 }

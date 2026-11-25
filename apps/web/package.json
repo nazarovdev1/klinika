@@ -8,7 +8,7 @@
     "start": "next start -p 3000",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "node scripts/check-messages.mjs && vitest run --passWithNoTests"
   },
   "dependencies": {
     "@hookform/resolvers": "7.0.8",

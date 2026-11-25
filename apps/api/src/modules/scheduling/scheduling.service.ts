@@ -9,6 +9,7 @@ import type {
 import { recordAudit } from '../../core/audit.js';
 import type { AuthContext } from '../../core/context.js';
 import { AppError } from '../../core/errors.js';
+import { patientNames } from '../../core/patient-names.js';
 import { rooms, type Realtime } from '../../core/realtime.js';
 import { dayOf, zonedToUtc } from '../../core/time.js';
 import type { QueueService } from '../queue/queue.service.js';
@@ -272,12 +273,20 @@ export function schedulingService(db: Db, realtime: Realtime, queue: QueueServic
             ? { doctorId: q.doctorId }
             : {}),
       };
-      const rows = await tenant(ctx).appointment.findMany({
+      const t = tenant(ctx);
+      const rows = await t.appointment.findMany({
         where,
         orderBy: { startsAt: 'asc' },
         take: 1000,
       });
-      return { items: rows.map(apptDto), nextCursor: null };
+      const names = await patientNames(
+        t,
+        rows.map((r) => r.patientId),
+      );
+      return {
+        items: rows.map((r) => ({ ...apptDto(r), patientName: names.get(r.patientId) ?? '' })),
+        nextCursor: null,
+      };
     },
 
     async create(ctx: AuthContext, input: CreateAppointment) {
