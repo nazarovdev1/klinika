@@ -3,6 +3,8 @@ import { parseArgs } from 'node:util';
 import { dbFromEnv } from './core/db.js';
 import { parseEnv } from './config/env.js';
 import { hashPassword } from './core/passwords.js';
+import { createPii } from './core/pii.js';
+import { seedDemo } from './seed/demo.js';
 
 /** Platform super-admin CLI: pnpm --filter @shifo/api cli create-clinic --name ... */
 async function createClinic(argv: string[]): Promise<void> {
@@ -70,13 +72,50 @@ async function createClinic(argv: string[]): Promise<void> {
   }
 }
 
+/** Synthetic demo dataset: pnpm db:seed [--name 'Shifo Demo'] [--password ...] [--patients 400] [--months 3] */
+async function seedDemoCommand(argv: string[]): Promise<void> {
+  const { values } = parseArgs({
+    args: argv,
+    options: {
+      name: { type: 'string', default: 'Shifo Demo' },
+      password: { type: 'string', default: 'Demo-12345' },
+      patients: { type: 'string', default: '400' },
+      months: { type: 'string', default: '3' },
+      prefix: { type: 'string', default: 'sd' },
+    },
+  });
+  const env = parseEnv();
+  const db = dbFromEnv(env);
+  try {
+    const out = await seedDemo(db, createPii(env), {
+      clinicName: values.name,
+      password: values.password,
+      patients: Number(values.patients),
+      months: Number(values.months),
+      loginPrefix: values.prefix,
+    });
+    console.log(`Demo clinic: ${out.clinicId}`);
+    console.log(`Logins: ${out.logins.join(', ')}`);
+    console.log(
+      `Password for all: ${values.password} (synthetic data only - never use in production)`,
+    );
+  } finally {
+    await db.disconnect();
+  }
+}
+
 const [command, ...rest] = process.argv.slice(2);
 if (command === 'create-clinic') {
   createClinic(rest).catch((err: unknown) => {
     console.error(err instanceof Error ? err.message : err);
     process.exit(1);
   });
+} else if (command === 'seed-demo') {
+  seedDemoCommand(rest).catch((err: unknown) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
 } else {
-  console.error('Commands: create-clinic');
+  console.error('Commands: create-clinic, seed-demo');
   process.exit(1);
 }

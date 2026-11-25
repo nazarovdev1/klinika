@@ -14,6 +14,7 @@ import {
   updateStaffSchema,
 } from '@shifo/contracts';
 import { z } from 'zod';
+import { registerRemainingRoutes } from './openapi-routes.js';
 
 extendZodWithOpenApi(z);
 
@@ -78,6 +79,8 @@ export function buildOpenApiDocument(): object {
     request: { params: z.object({ id: z.uuid() }), body: json(updateStaffSchema) },
     responses: { 200: { description: 'Updated', ...json(staffDtoSchema) }, 409: problem },
   });
+
+  registerRemainingRoutes(registry, secured);
 
   return new OpenApiGeneratorV31(registry.definitions).generateDocument({
     openapi: '3.1.0',

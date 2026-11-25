@@ -15,7 +15,8 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:seed": "pnpm --filter @shifo/api cli seed-demo"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
