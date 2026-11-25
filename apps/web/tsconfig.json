@@ -1,9 +1,23 @@
 {
   "extends": "@shifo/config/tsconfig.next.json",
   "compilerOptions": {
-    "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./src/*"] }
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["next-env.d.ts", "src", ".next/types/**/*.ts", "*.ts", "*.mjs"],
+  "include": [
+    "*.mjs",
+    "*.ts",
+    ".next/types/**/*.ts",
+    "e2e",
+    "next-env.d.ts",
+    "src",
+    ".next-e2e/types/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

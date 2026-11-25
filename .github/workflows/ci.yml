@@ -27,6 +27,15 @@ jobs:
       - run: pnpm --filter @shifo/api exec playwright install --with-deps chromium
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm --filter @shifo/web e2e:build
+      - run: pnpm --filter @shifo/web e2e
+        env:
+          REDIS_URL: redis://localhost:6379
+          JWT_ACCESS_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-xx
+          PII_KEYS: k1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          PII_ACTIVE_KEY_ID: k1
+          PII_HMAC_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+          WEB_ORIGIN: http://localhost:3000
       - run: docker compose -f infra/docker-compose.yml config -q
         env:
           POSTGRES_PASSWORD: ci

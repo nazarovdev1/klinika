@@ -9,6 +9,11 @@ const envSchema = z.object({
   DATABASE_SYSTEM_URL: z.string().optional(),
   /** 'on' when running several API replicas (Socket.IO Redis adapter). */
   REALTIME_REDIS: z.enum(['on', 'off']).default('off'),
+  /** Optional Postgres schema (E2E runs use an isolated schema). */
+  DATABASE_SCHEMA: z
+    .string()
+    .regex(/^[a-z0-9_]+$/)
+    .optional(),
   DB_RLS: z.enum(['on', 'off']).default('off'),
   REDIS_URL: z.string().min(1),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),

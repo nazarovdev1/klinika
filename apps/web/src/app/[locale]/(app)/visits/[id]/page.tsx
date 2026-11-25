@@ -141,9 +141,12 @@ export default function EncounterPage() {
 
   const num = (v: string | undefined): number | null =>
     v && v.trim() !== '' ? Number(v.replace(',', '.')) : null;
+  const apply = (dto: Encounter): void => {
+    qc.setQueryData(['encounter', id], dto);
+  };
   const saveAll = useMutation({
-    mutationFn: async () => {
-      if (!e) return;
+    mutationFn: async (): Promise<Encounter | undefined> => {
+      if (!e) return undefined;
       await api(`/encounters/${id}`, { method: 'PATCH', json: { version: e.version, ...text } });
       await api(`/encounters/${id}/diagnoses`, {
         method: 'PUT',
@@ -151,28 +154,33 @@ export default function EncounterPage() {
           items: dx.map((d) => ({ icd10Code: d.icd10Code, type: d.type, note: d.note ?? null })),
         },
       });
-      await api(`/encounters/${id}/prescriptions`, {
+      // Each write answers with the full encounter: the last one carries the newest version.
+      return api<Encounter>(`/encounters/${id}/prescriptions`, {
         method: 'PUT',
         json: { items: rx.filter((r) => r.drugName.trim()) },
       });
     },
-    onSuccess: refresh,
+    onSuccess: (dto) => {
+      if (dto) apply(dto);
+    },
   });
   const saveVitals = useMutation({
     mutationFn: () =>
-      api(`/encounters/${id}/vitals`, {
+      api<Encounter>(`/encounters/${id}/vitals`, {
         method: 'PUT',
         json: Object.fromEntries(VITAL_KEYS.map((k) => [k, num(vitals[k])])),
       }),
-    onSuccess: refresh,
+    onSuccess: apply,
   });
   const sign = useMutation({
     mutationFn: async () => {
-      await saveAll.mutateAsync();
-      const fresh = await api<Encounter>(`/encounters/${id}`);
-      await api(`/encounters/${id}/sign`, { method: 'POST', json: { version: fresh.version } });
+      const saved = await saveAll.mutateAsync();
+      return api<Encounter>(`/encounters/${id}/sign`, {
+        method: 'POST',
+        json: { version: saved?.version ?? e?.version },
+      });
     },
-    onSuccess: refresh,
+    onSuccess: apply,
   });
   const addAddendum = useMutation({
     mutationFn: () =>

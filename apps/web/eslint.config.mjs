@@ -4,6 +4,6 @@ export default [
   ...base,
   {
     // Next.js and Tailwind config files are not part of the TS project graph in a useful way.
-    ignores: ['postcss.config.mjs'],
+    ignores: ['postcss.config.mjs', '.next-e2e/**', 'test-results/**', 'playwright-report/**'],
   },
 ];

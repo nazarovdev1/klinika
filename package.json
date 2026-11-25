@@ -16,7 +16,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
-    "db:seed": "pnpm --filter @shifo/api cli seed-demo"
+    "db:seed": "pnpm --filter @shifo/api cli seed-demo",
+    "docs:rbac": "node scripts/gen-rbac-matrix.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.4",
